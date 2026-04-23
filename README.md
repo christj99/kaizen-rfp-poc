@@ -20,13 +20,31 @@ The three agents:
 
 ## Quick start
 
+### Linux / macOS (or Git Bash on Windows)
+
 ```bash
-cp .env.example .env          # fill in ANTHROPIC_API_KEY at minimum
+cp .env.example .env
 python -m venv .venv
-source .venv/Scripts/activate # on Windows Git Bash; use .venv/bin/activate on Linux/macOS
+source .venv/bin/activate     # use .venv/Scripts/activate under Git Bash on Windows
 pip install -r requirements.txt
 ./scripts/demo_start.sh
 ```
+
+### Windows PowerShell
+
+```powershell
+Copy-Item .env.example .env
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+.\scripts\demo_start.ps1
+```
+
+> Note: if PowerShell blocks local scripts, run once as your user:
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+> Avoid invoking the `.sh` scripts through WSL's `bash` — WSL sees its own Linux filesystem, not your Windows venv.
+
+Edit `.env` and set `ANTHROPIC_API_KEY` at minimum before starting.
 
 URLs after startup:
 
@@ -34,7 +52,7 @@ URLs after startup:
 - FastAPI docs:  http://localhost:8000/docs
 - n8n:           http://localhost:5678
 
-To tear down: `./scripts/demo_stop.sh`.
+To tear down: `./scripts/demo_stop.sh` (or `.\scripts\demo_stop.ps1`).
 
 ## Prerequisites
 
