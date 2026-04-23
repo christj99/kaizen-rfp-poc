@@ -6,7 +6,12 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 
 CREATE TABLE IF NOT EXISTS rfps (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    source TEXT NOT NULL,                       -- 'sam_gov' | 'email' | 'manual'
+    -- The ingestion adapter family. 'manual_upload' and 'url_ingest' both
+    -- map to the manual-ingest UI path; 'email' and 'sam_gov' are the two
+    -- automated adapters. New types should be added to RFPSourceType.
+    source_type TEXT NOT NULL,                  -- 'email' | 'sam_gov' | 'manual_upload' | 'url_ingest'
+    source_adapter_version TEXT,                -- e.g. 'email_v1', 'sam_gov_v1' — forward-compat tag
+    source_metadata JSONB,                      -- adapter-specific fields (email sender, SAM.gov GUID, etc.)
     external_id TEXT,                           -- e.g., SAM.gov solicitation number
     title TEXT NOT NULL,
     agency TEXT,
@@ -17,7 +22,7 @@ CREATE TABLE IF NOT EXISTS rfps (
     full_text TEXT,
     source_url TEXT,
     received_at TIMESTAMP DEFAULT NOW(),
-    status TEXT DEFAULT 'new',                  -- 'new'|'screened'|'in_draft'|'submitted'|'won'|'lost'|'dismissed'
+    status TEXT DEFAULT 'new',                  -- 'new'|'screened'|'in_draft'|'submitted'|'won'|'lost'|'dismissed'|'needs_manual_review'
     dedupe_hash TEXT UNIQUE
 );
 

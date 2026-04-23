@@ -1,4 +1,5 @@
-# Top-level runtime config. Phase 0 scaffold — the API reads this starting Phase 1.
+# Top-level runtime config. Hot-reloadable — the Settings page writes this file
+# back and calls reload_config() without restarting the API.
 mode: manual                          # manual | chain | full_auto
 
 screening:
@@ -8,15 +9,51 @@ screening:
 drafting:
   auto_draft_threshold: 90
 
+# Ingestion sources (supplemental plan, amendment 1.B).
+# Each top-level key is a source *family*. Within each family, `adapters:` is
+# a list of concrete adapter instances — letting us run two Gmail inboxes,
+# two SAM.gov keys, etc. without schema churn. The adapter whose family has
+# `primary: true` is what the UI badges as "Primary source".
 sources:
+  email:
+    enabled: true
+    primary: true
+    adapters:
+      - name: "demo_gmail"
+        type: "imap"
+        host: "imap.gmail.com"
+        port: 993
+        username_env: "DEMO_EMAIL_USERNAME"
+        password_env: "DEMO_EMAIL_PASSWORD"
+        folder: "INBOX"
+        poll_interval_minutes: 2
+        mark_as_read: true
+        parse_strategy:
+          pdf_attachments: true
+          text_body: true
+          digest_parser: false        # stretch goal (supplemental 2.C)
+        # When true, a light Claude pass fills in missing structured fields
+        # (NAICS, due date, value) from free-form email text. Never overwrites
+        # caller-provided values; always tags extracted fields with confidence.
+        use_llm_extraction: false
   sam_gov:
     enabled: true
-    naics_filter: ["541511", "541512", "541519", "541690"]
-    poll_interval_hours: 4
-  email:
-    enabled: false                    # stretch goal
+    primary: false
+    adapters:
+      - name: "sam_gov_primary"
+        type: "sam_gov_api"
+        api_key_env: "SAM_GOV_API_KEY"
+        naics_filter: ["541511", "541512", "541519", "541690", "518210"]
+        poll_interval_hours: 4
+        fallback_strategy:
+          try_description_endpoint: true
+          on_description_failure: "flag_for_manual_review"
   manual_upload:
     enabled: true
+    primary: false
+  url_ingest:
+    enabled: true
+    primary: false
 
 slack:
   enabled: true

@@ -13,7 +13,7 @@ from .draft import (
     DraftStatus,
 )
 from .past_proposal import PastProposal, ProposalOutcome
-from .rfp import RFP, RFPSource, RFPStatus
+from .rfp import RFP, RFPSourceType, RFPStatus, RawIngestionRecord
 from .screening import (
     ConfidenceLevel,
     DealBreaker,
@@ -48,8 +48,9 @@ __all__ = [
     "PastProposal",
     "ProposalOutcome",
     "RFP",
-    "RFPSource",
+    "RFPSourceType",
     "RFPStatus",
+    "RawIngestionRecord",
     "Recommendation",
     "RubricDimensionScore",
     "Screening",

@@ -159,7 +159,15 @@ def _record_to_rfp(record: Dict[str, Any]) -> Optional[RFP]:
     dedupe_hash = _dedupe_hash(external_id, title)
 
     return RFP(
-        source="sam_gov",
+        source_type="sam_gov",
+        source_adapter_version="sam_gov_v1",
+        source_metadata={
+            "notice_id": record.get("noticeId"),
+            "notice_type": record.get("type"),
+            "set_aside": record.get("typeOfSetAsideDescription"),
+            "posted_date": record.get("postedDate"),
+            "active": record.get("active"),
+        },
         external_id=external_id,
         title=title,
         agency=agency,

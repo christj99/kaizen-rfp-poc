@@ -37,7 +37,7 @@ from .db.client import (
     set_screening_override,
     upsert_rfp,
 )
-from .models.rfp import RFP, RFPSource, RFPStatus
+from .models.rfp import RFP, RFPSourceType, RFPStatus
 from .models.screening import Recommendation, Screening
 from .rag.retriever import find_similar_proposals
 
@@ -49,7 +49,9 @@ app = FastAPI(title="Kaizen RFP POC", version="0.2.0")
 # -- request/response schemas -----------------------------------------
 
 class IngestRFPRequest(BaseModel):
-    source: RFPSource = "manual"
+    source_type: RFPSourceType = "manual_upload"
+    source_adapter_version: Optional[str] = None
+    source_metadata: dict = Field(default_factory=dict)
     title: str
     agency: Optional[str] = None
     external_id: Optional[str] = None
@@ -137,7 +139,9 @@ async def ingest_rfp_pdf(
         raise HTTPException(status_code=400, detail="PDF had no extractable text.")
 
     rfp = RFP(
-        source="manual",
+        source_type="manual_upload",
+        source_adapter_version="manual_upload_v1",
+        source_metadata={"filename": file.filename, "content_type": file.content_type},
         title=title or file.filename or "Uploaded RFP",
         agency=agency,
         full_text=text,

@@ -101,17 +101,21 @@ def upsert_rfp(rfp: RFP) -> RFP:
         cur.execute(
             """
             INSERT INTO rfps
-                (id, source, external_id, title, agency, naics_codes,
+                (id, source_type, source_adapter_version, source_metadata,
+                 external_id, title, agency, naics_codes,
                  due_date, value_estimate_low, value_estimate_high,
                  full_text, source_url, received_at, status, dedupe_hash)
             VALUES
-                (%s, %s, %s, %s, %s, %s,
+                (%s, %s, %s, %s::jsonb,
+                 %s, %s, %s, %s,
                  %s, %s, %s,
                  %s, %s, %s, %s, %s)
             """,
             (
                 str(rfp.id),
-                rfp.source,
+                rfp.source_type,
+                rfp.source_adapter_version,
+                json.dumps(rfp.source_metadata, default=str),
                 rfp.external_id,
                 rfp.title,
                 rfp.agency,
@@ -132,7 +136,9 @@ def upsert_rfp(rfp: RFP) -> RFP:
 def _row_to_rfp(row: psycopg2.extras.DictRow) -> RFP:
     return RFP(
         id=row["id"],
-        source=row["source"],
+        source_type=row["source_type"],
+        source_adapter_version=row["source_adapter_version"],
+        source_metadata=row["source_metadata"] or {},
         external_id=row["external_id"],
         title=row["title"],
         agency=row["agency"],

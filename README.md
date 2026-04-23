@@ -59,9 +59,33 @@ To tear down: `./scripts/demo_stop.sh` (or `.\scripts\demo_stop.ps1`).
 - Docker Desktop (for Postgres + n8n)
 - Python 3.11+
 - An Anthropic API key
+- A throwaway Gmail (or any IMAP) inbox — see "Demo email setup" below
 - _Optional:_ SAM.gov API key (free; register at https://sam.gov/content/api-keys)
 - _Optional:_ Slack Incoming Webhook URL for discovery notifications
 - _Optional:_ OpenAI API key for embeddings (used by the RAG indexer)
+
+## Demo email setup
+
+Email is the primary demo ingestion source (see `docs/sam_gov_issues.md` for
+why the SAM.gov-only path was downgraded to secondary). The pipeline connects
+to an IMAP inbox, polls for unread messages, and turns each one into an RFP.
+
+1. **Create a throwaway Gmail account** (e.g. `yourname.rfps.demo@gmail.com`).
+2. **Enable 2-factor auth** — Gmail requires it before issuing app passwords.
+   <https://myaccount.google.com/security>
+3. **Generate an app-specific password** at <https://myaccount.google.com/apppasswords>.
+   Select "Mail" as the app. Copy the 16-character password — you won't see it again.
+4. **IMAP is on by default** for new Gmail accounts. If you reused an older account,
+   confirm it at Gmail → Settings → Forwarding and POP/IMAP.
+5. **Add credentials to `.env`:**
+   ```
+   DEMO_EMAIL_USERNAME=yourname.rfps.demo@gmail.com
+   DEMO_EMAIL_PASSWORD=<16-char app password, no spaces>
+   ```
+6. After starting the stack, test the connection via `POST /discovery/run/demo_gmail`
+   (or click "Run now" in the UI's Settings → Adapters section once Phase 5 lands).
+
+> Never commit `.env`. Only `.env.example`.
 
 ## Configuration
 

@@ -1,10 +1,16 @@
 """Typed config loader. See ``loader.py``."""
 
 from .loader import (
+    AdapterConfigBase,
     AppConfig,
     DraftingConfig,
+    EmailAdapterConfig,
+    EmailSourceConfig,
     LLMConfig,
     Mode,
+    PassthroughSourceConfig,
+    SamGovAdapterConfig,
+    SamGovSourceConfig,
     ScreeningConfig,
     SlackConfig,
     SourcesConfig,
@@ -15,10 +21,16 @@ from .loader import (
 )
 
 __all__ = [
+    "AdapterConfigBase",
     "AppConfig",
     "DraftingConfig",
+    "EmailAdapterConfig",
+    "EmailSourceConfig",
     "LLMConfig",
     "Mode",
+    "PassthroughSourceConfig",
+    "SamGovAdapterConfig",
+    "SamGovSourceConfig",
     "ScreeningConfig",
     "SlackConfig",
     "SourcesConfig",
