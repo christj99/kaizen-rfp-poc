@@ -217,6 +217,24 @@ def _format_similar_block(similar: List[SimilarProposal]) -> str:
 
 # -- response translation ---------------------------------------------
 
+_RECOMMENDATION_VALUES = {"pursue", "maybe", "skip"}
+_EFFORT_VALUES = {"low", "medium", "high"}
+_CONFIDENCE_VALUES = {"low", "medium", "high"}
+
+
+def _coerce_enum(value: Any, allowed: set) -> Optional[str]:
+    """Coerce a free-form model response to a known Literal or None.
+
+    Claude occasionally returns 'n/a', 'unknown', 'not applicable', etc. for
+    low-information RFPs. Rather than 500 on validation, we surface these as
+    None so the UI can show them as 'not assessed'.
+    """
+    if value is None:
+        return None
+    s = str(value).strip().lower()
+    return s if s in allowed else None
+
+
 def _translate_response(
     data: Dict[str, Any],
     rfp: RFP,
@@ -226,7 +244,7 @@ def _translate_response(
 ) -> Screening:
     rationale = ScreeningRationale(
         recommendation_rationale=_safe_str(data.get("recommendation_rationale")),
-        confidence_level=_safe_str(data.get("confidence_level")),
+        confidence_level=_coerce_enum(data.get("confidence_level"), _CONFIDENCE_VALUES),
         confidence_notes=_safe_str(data.get("confidence_notes")),
         hard_disqualifier_results=[
             HardDisqualifierResult.model_validate(x)
@@ -267,9 +285,9 @@ def _translate_response(
     return Screening(
         rfp_id=rfp.id,
         fit_score=fit_score,
-        recommendation=_safe_str(data.get("recommendation")),
+        recommendation=_coerce_enum(data.get("recommendation"), _RECOMMENDATION_VALUES),
         rationale=rationale,
-        effort_estimate=_safe_str(data.get("effort_estimate")),
+        effort_estimate=_coerce_enum(data.get("effort_estimate"), _EFFORT_VALUES),
         deal_breakers=deal_breakers,
         open_questions=open_questions,
         similar_proposal_ids=[s.proposal.id for s in similar],
