@@ -1,0 +1,28 @@
+# Top-level runtime config. Phase 0 scaffold — the API reads this starting Phase 1.
+mode: manual                          # manual | chain | full_auto
+
+screening:
+  threshold_pursue: 75
+  threshold_maybe: 50
+
+drafting:
+  auto_draft_threshold: 90
+
+sources:
+  sam_gov:
+    enabled: true
+    naics_filter: ["541511", "541512", "541519", "541690"]
+    poll_interval_hours: 4
+  email:
+    enabled: false                    # stretch goal
+  manual_upload:
+    enabled: true
+
+slack:
+  enabled: true
+  notification_threshold: 75
+
+llm:
+  model: "claude-sonnet-4-5"
+  max_tokens: 4096
+  temperature: 0.3

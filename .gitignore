@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.local
+*.pem
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Docker / data volumes
+.docker-data/
+data/postgres/
+data/n8n/
+
+# Logs / runtime artifacts
+logs/
+*.log
+*.pid
+.uvicorn.pid
+.streamlit.pid
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Build / backup artifacts
+docs/demo_backup.mp4

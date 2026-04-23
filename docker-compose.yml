@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: kaizen_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-kaizen_rfp}
+      POSTGRES_USER: ${POSTGRES_USER:-kaizen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kaizen_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kaizen} -d ${POSTGRES_DB:-kaizen_rfp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - kaizen_net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: kaizen_n8n
+    restart: unless-stopped
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:-change-me}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: ${N8N_PORT:-5678}
+      N8N_PROTOCOL: http
+      # Allow n8n to reach the host-running FastAPI service.
+      N8N_RUNNERS_ENABLED: "true"
+      WEBHOOK_URL: http://localhost:${N8N_PORT:-5678}/
+      GENERIC_TIMEZONE: America/New_York
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    extra_hosts:
+      # Lets workflows reach the FastAPI service on the host via http://host.docker.internal:8000
+      - "host.docker.internal:host-gateway"
+    networks:
+      - kaizen_net
+
+networks:
+  kaizen_net:
+    name: kaizen_net
+
+volumes:
+  postgres_data:
+    name: kaizen_postgres_data
+  n8n_data:
+    name: kaizen_n8n_data

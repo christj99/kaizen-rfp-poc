@@ -1,0 +1,4 @@
+# Keep shell scripts LF-only so they run under bash on Windows + Unix alike.
+*.sh      text eol=lf
+*.bash    text eol=lf
+Makefile  text eol=lf
