@@ -1,8 +1,7 @@
 """Thin psycopg2 helpers. Intentionally minimal — no ORM, no Alembic.
 
-Expand this module as downstream agents need structured persistence
-(save_rfp, get_rfp, etc.). Phase 1 only needs audit-log writes so the
-LLM client can record token usage.
+Grows opportunistically as agents need new persistence ops. Everything
+goes through ``db_cursor`` for consistent transaction + cleanup handling.
 """
 
 from __future__ import annotations
@@ -10,25 +9,35 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-from typing import Iterator, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
+from uuid import UUID
 
 import psycopg2
 import psycopg2.extras
-from dotenv import load_dotenv
+from pgvector.psycopg2 import register_vector
 
+from .. import _env  # noqa: F401 — populates os.environ from .env
 from ..models.audit import AuditEntry
+from ..models.past_proposal import PastProposal
+from ..models.rfp import RFP
+from ..models.screening import Screening
 
-load_dotenv()
+# Return UUID columns as uuid.UUID rather than str, so Python-side dict keys
+# and equality comparisons line up with pydantic model fields.
+psycopg2.extras.register_uuid()
 
 
 def _connect():
-    return psycopg2.connect(
+    conn = psycopg2.connect(
         host=os.environ.get("POSTGRES_HOST", "127.0.0.1"),
         port=int(os.environ.get("POSTGRES_PORT", "5432")),
         dbname=os.environ.get("POSTGRES_DB", "kaizen_rfp"),
         user=os.environ.get("POSTGRES_USER", "kaizen"),
         password=os.environ.get("POSTGRES_PASSWORD", "kaizen_dev_password"),
     )
+    # pgvector adapter so VECTOR columns round-trip as python lists.
+    register_vector(conn)
+    return conn
 
 
 @contextlib.contextmanager
@@ -36,16 +45,25 @@ def db_cursor() -> Iterator[psycopg2.extras.DictCursor]:
     """Auto-committing cursor context manager. Rolls back on exception."""
     conn = _connect()
     try:
-        with conn:  # commits on clean exit, rolls back otherwise
+        with conn:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                 yield cur
     finally:
         conn.close()
 
 
+def ping() -> bool:
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT 1")
+            return cur.fetchone()[0] == 1
+    except Exception:
+        return False
+
+
+# -- audit_log ---------------------------------------------------------
+
 def write_audit(entry: AuditEntry) -> None:
-    """Persist a single audit record. Callers should swallow errors here if
-    the audit write is truly non-critical to their path (e.g. LLM client)."""
     with db_cursor() as cur:
         cur.execute(
             """
@@ -65,11 +83,312 @@ def write_audit(entry: AuditEntry) -> None:
         )
 
 
-def ping() -> bool:
-    """True if the DB is reachable — used by /health once wired up."""
-    try:
-        with db_cursor() as cur:
-            cur.execute("SELECT 1")
-            return cur.fetchone()[0] == 1
-    except Exception:
-        return False
+# -- rfps --------------------------------------------------------------
+
+def upsert_rfp(rfp: RFP) -> RFP:
+    """Insert or, when ``dedupe_hash`` matches an existing row, return that row.
+
+    Returns the canonical RFP (with the persisted ID — may differ from the
+    one passed in if it was already in the DB).
+    """
+    with db_cursor() as cur:
+        if rfp.dedupe_hash:
+            cur.execute("SELECT id FROM rfps WHERE dedupe_hash = %s", (rfp.dedupe_hash,))
+            row = cur.fetchone()
+            if row:
+                existing_id = row["id"]
+                return get_rfp(existing_id)  # type: ignore[arg-type]
+        cur.execute(
+            """
+            INSERT INTO rfps
+                (id, source, external_id, title, agency, naics_codes,
+                 due_date, value_estimate_low, value_estimate_high,
+                 full_text, source_url, received_at, status, dedupe_hash)
+            VALUES
+                (%s, %s, %s, %s, %s, %s,
+                 %s, %s, %s,
+                 %s, %s, %s, %s, %s)
+            """,
+            (
+                str(rfp.id),
+                rfp.source,
+                rfp.external_id,
+                rfp.title,
+                rfp.agency,
+                rfp.naics_codes,
+                rfp.due_date,
+                rfp.value_estimate_low,
+                rfp.value_estimate_high,
+                rfp.full_text,
+                rfp.source_url,
+                rfp.received_at,
+                rfp.status,
+                rfp.dedupe_hash,
+            ),
+        )
+    return rfp
+
+
+def _row_to_rfp(row: psycopg2.extras.DictRow) -> RFP:
+    return RFP(
+        id=row["id"],
+        source=row["source"],
+        external_id=row["external_id"],
+        title=row["title"],
+        agency=row["agency"],
+        naics_codes=list(row["naics_codes"]) if row["naics_codes"] else [],
+        due_date=row["due_date"],
+        value_estimate_low=row["value_estimate_low"],
+        value_estimate_high=row["value_estimate_high"],
+        full_text=row["full_text"],
+        source_url=row["source_url"],
+        received_at=row["received_at"],
+        status=row["status"],
+        dedupe_hash=row["dedupe_hash"],
+    )
+
+
+def get_rfp(rfp_id: UUID) -> Optional[RFP]:
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM rfps WHERE id = %s", (str(rfp_id),))
+        row = cur.fetchone()
+        return _row_to_rfp(row) if row else None
+
+
+def list_rfps(
+    *,
+    status: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> List[RFP]:
+    sql = "SELECT * FROM rfps"
+    params: List[Any] = []
+    if status:
+        sql += " WHERE status = %s"
+        params.append(status)
+    sql += " ORDER BY received_at DESC LIMIT %s OFFSET %s"
+    params.extend([limit, offset])
+    with db_cursor() as cur:
+        cur.execute(sql, params)
+        return [_row_to_rfp(r) for r in cur.fetchall()]
+
+
+def update_rfp_status(rfp_id: UUID, status: str) -> None:
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE rfps SET status = %s WHERE id = %s",
+            (status, str(rfp_id)),
+        )
+
+
+# -- screenings --------------------------------------------------------
+
+def insert_screening(screening: Screening) -> Screening:
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO screenings
+                (id, rfp_id, fit_score, recommendation, rationale,
+                 effort_estimate, deal_breakers, open_questions,
+                 similar_proposal_ids, model_version, rubric_version,
+                 created_at, human_override, human_override_reason)
+            VALUES
+                (%s, %s, %s, %s, %s::jsonb,
+                 %s, %s::jsonb, %s::jsonb,
+                 %s::uuid[], %s, %s,
+                 %s, %s, %s)
+            """,
+            (
+                str(screening.id),
+                str(screening.rfp_id),
+                screening.fit_score,
+                screening.recommendation,
+                screening.rationale.model_dump_json(),
+                screening.effort_estimate,
+                json.dumps([db.model_dump() for db in screening.deal_breakers], default=str),
+                json.dumps([oq.model_dump() for oq in screening.open_questions], default=str),
+                [str(pid) for pid in screening.similar_proposal_ids],
+                screening.model_version,
+                screening.rubric_version,
+                screening.created_at,
+                screening.human_override,
+                screening.human_override_reason,
+            ),
+        )
+    return screening
+
+
+def _row_to_screening(row: psycopg2.extras.DictRow) -> Screening:
+    from ..models.screening import ScreeningRationale
+
+    rationale_raw = row["rationale"] or {}
+    deal_raw = row["deal_breakers"] or []
+    open_q_raw = row["open_questions"] or []
+    return Screening(
+        id=row["id"],
+        rfp_id=row["rfp_id"],
+        fit_score=row["fit_score"],
+        recommendation=row["recommendation"],
+        rationale=ScreeningRationale.model_validate(rationale_raw),
+        effort_estimate=row["effort_estimate"],
+        deal_breakers=deal_raw,
+        open_questions=open_q_raw,
+        similar_proposal_ids=list(row["similar_proposal_ids"]) if row["similar_proposal_ids"] else [],
+        model_version=row["model_version"],
+        rubric_version=row["rubric_version"],
+        created_at=row["created_at"],
+        human_override=row["human_override"],
+        human_override_reason=row["human_override_reason"],
+    )
+
+
+def latest_screening_for_rfp(rfp_id: UUID) -> Optional[Screening]:
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT * FROM screenings
+             WHERE rfp_id = %s
+             ORDER BY created_at DESC
+             LIMIT 1
+            """,
+            (str(rfp_id),),
+        )
+        row = cur.fetchone()
+        return _row_to_screening(row) if row else None
+
+
+def set_screening_override(
+    screening_id: UUID, override: str, reason: Optional[str]
+) -> None:
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            UPDATE screenings
+               SET human_override = %s, human_override_reason = %s
+             WHERE id = %s
+            """,
+            (override, reason, str(screening_id)),
+        )
+
+
+# -- past_proposals + chunks ------------------------------------------
+
+def insert_past_proposal(
+    proposal: PastProposal,
+    chunks: Sequence[Tuple[str, str, Sequence[float]]],
+) -> None:
+    """Insert a proposal row + its embedding chunks in one transaction.
+
+    ``chunks`` is ``[(section_name, chunk_text, embedding), ...]``.
+    """
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO past_proposals
+                (id, title, agency, submitted_date, outcome,
+                 contract_value, full_text, sections, metadata)
+            VALUES
+                (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb)
+            """,
+            (
+                str(proposal.id),
+                proposal.title,
+                proposal.agency,
+                proposal.submitted_date,
+                proposal.outcome,
+                proposal.contract_value,
+                proposal.full_text,
+                json.dumps(proposal.sections),
+                json.dumps(proposal.metadata, default=str),
+            ),
+        )
+        for section_name, chunk_text, embedding in chunks:
+            cur.execute(
+                """
+                INSERT INTO proposal_chunks
+                    (past_proposal_id, chunk_section, chunk_text, embedding)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (str(proposal.id), section_name, chunk_text, list(embedding)),
+            )
+
+
+def delete_all_past_proposals() -> int:
+    """Wipe past_proposals + proposal_chunks. Returns rows deleted."""
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM past_proposals")
+        # CASCADE on proposal_chunks FK handles the chunks
+        return cur.rowcount
+
+
+def past_proposal_count() -> int:
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM past_proposals")
+        return cur.fetchone()[0]
+
+
+def _row_to_past_proposal(row: psycopg2.extras.DictRow) -> PastProposal:
+    sections = row["sections"] or {}
+    metadata = row["metadata"] or {}
+    return PastProposal(
+        id=row["id"],
+        title=row["title"],
+        agency=row["agency"],
+        submitted_date=row["submitted_date"],
+        outcome=row["outcome"],
+        contract_value=row["contract_value"],
+        full_text=row["full_text"],
+        sections=sections,
+        metadata=metadata,
+    )
+
+
+def get_past_proposal(proposal_id: UUID) -> Optional[PastProposal]:
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM past_proposals WHERE id = %s", (str(proposal_id),))
+        row = cur.fetchone()
+        return _row_to_past_proposal(row) if row else None
+
+
+def get_past_proposals(proposal_ids: Iterable[UUID]) -> List[PastProposal]:
+    ids = [str(pid) for pid in proposal_ids]
+    if not ids:
+        return []
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM past_proposals WHERE id = ANY(%s::uuid[])", (ids,)
+        )
+        return [_row_to_past_proposal(r) for r in cur.fetchall()]
+
+
+def list_past_proposals(limit: int = 200) -> List[PastProposal]:
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM past_proposals ORDER BY submitted_date DESC NULLS LAST LIMIT %s",
+            (limit,),
+        )
+        return [_row_to_past_proposal(r) for r in cur.fetchall()]
+
+
+def find_similar_chunks(
+    embedding: Sequence[float],
+    *,
+    k: int = 20,
+) -> List[Dict[str, Any]]:
+    """Return top-k chunks by cosine distance.
+
+    Each row has: past_proposal_id, chunk_section, chunk_text, distance.
+    Callers aggregate to proposal level themselves (see rag.retriever).
+    """
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT past_proposal_id, chunk_section, chunk_text,
+                   embedding <=> %s::vector AS distance
+              FROM proposal_chunks
+             ORDER BY embedding <=> %s::vector
+             LIMIT %s
+            """,
+            (list(embedding), list(embedding), k),
+        )
+        return [dict(r) for r in cur.fetchall()]

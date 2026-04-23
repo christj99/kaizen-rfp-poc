@@ -9,18 +9,15 @@ from pydantic import BaseModel, ConfigDict, Field
 ProposalOutcome = Literal["won", "lost", "withdrawn"]
 
 
-class ProposalSections(BaseModel):
-    """Canonical section set used for retrieval + drafting."""
-
-    exec_summary: Optional[str] = None
-    qualifications: Optional[str] = None
-    technical: Optional[str] = None
-    pricing: Optional[str] = None
-    attachments: Optional[str] = None
-
-
 class PastProposal(BaseModel):
-    """Mirrors the ``past_proposals`` table."""
+    """Mirrors the ``past_proposals`` table.
+
+    ``sections`` is a free-form dict keyed by human-readable section name
+    (``"Executive Summary"``, ``"Technical Approach"`` …). The rationale:
+    proposal templates evolve and different clients require different
+    sections, so pinning the shape in pydantic would guarantee future drift.
+    The drafting template is the authoritative canonical set.
+    """
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -31,5 +28,5 @@ class PastProposal(BaseModel):
     outcome: Optional[ProposalOutcome] = None
     contract_value: Optional[int] = None
     full_text: Optional[str] = None
-    sections: ProposalSections = Field(default_factory=ProposalSections)
+    sections: Dict[str, str] = Field(default_factory=dict)
     metadata: Dict[str, Any] = Field(default_factory=dict)

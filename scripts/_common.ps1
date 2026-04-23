@@ -6,6 +6,11 @@ $LogDir = Join-Path $RepoRoot 'logs'
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
 function Import-DotEnv {
+    # Populate env vars from .env, but never overwrite a value already exported
+    # in the current shell. An exported-but-empty value counts as "unset" so
+    # .env can fill it in — this matches the behaviour of services/api/_env.py
+    # and avoids the classic footgun where a stub .env clobbers a real shell
+    # key (e.g. OPENAI_API_KEY=sk-xxxxx placeholder overwriting a live key).
     $envFile = Join-Path $RepoRoot '.env'
     if (-not (Test-Path $envFile)) { return }
     Get-Content $envFile | ForEach-Object {
@@ -20,7 +25,10 @@ function Import-DotEnv {
             } elseif ($value.StartsWith("'") -and $value.EndsWith("'")) {
                 $value = $value.Substring(1, $value.Length - 2)
             }
-            Set-Item -Path "Env:$name" -Value $value
+            $existing = [Environment]::GetEnvironmentVariable($name)
+            if ([string]::IsNullOrEmpty($existing)) {
+                Set-Item -Path "Env:$name" -Value $value
+            }
         }
     }
 }

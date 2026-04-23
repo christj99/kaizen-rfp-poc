@@ -12,22 +12,32 @@ from .draft import (
     DraftSectionProvenance,
     DraftStatus,
 )
-from .past_proposal import PastProposal, ProposalOutcome, ProposalSections
+from .past_proposal import PastProposal, ProposalOutcome
 from .rfp import RFP, RFPSource, RFPStatus
 from .screening import (
+    ConfidenceLevel,
     DealBreaker,
     EffortEstimate,
+    HardDisqualifierResult,
     OpenQuestion,
     Recommendation,
+    RelevanceStrength,
     RubricDimensionScore,
     Screening,
     ScreeningRationale,
+    Severity,
+    SimilarProposalAnalysis,
 )
 
 __all__ = [
     "AuditActor",
     "AuditEntry",
+    "ConfidenceLevel",
     "DealBreaker",
+    "HardDisqualifierResult",
+    "RelevanceStrength",
+    "Severity",
+    "SimilarProposalAnalysis",
     "Draft",
     "DraftContent",
     "DraftSection",
@@ -37,7 +47,6 @@ __all__ = [
     "OpenQuestion",
     "PastProposal",
     "ProposalOutcome",
-    "ProposalSections",
     "RFP",
     "RFPSource",
     "RFPStatus",

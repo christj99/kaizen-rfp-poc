@@ -8,47 +8,76 @@ from pydantic import BaseModel, ConfigDict, Field
 
 Recommendation = Literal["pursue", "maybe", "skip"]
 EffortEstimate = Literal["low", "medium", "high"]
+ConfidenceLevel = Literal["low", "medium", "high"]
+RelevanceStrength = Literal["strong", "moderate", "weak"]
+Severity = Literal["low", "medium", "high"]
 
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-class RubricDimensionScore(BaseModel):
-    """One row of the rubric breakdown the model returns."""
+class HardDisqualifierResult(BaseModel):
+    """Per-disqualifier pass/fail check, per the rubric."""
 
+    id: str
+    triggered: bool
+    evidence: Optional[str] = None
+    reasoning: Optional[str] = None
+
+
+class RubricDimensionScore(BaseModel):
+    """One row of the weighted-dimension breakdown the model returns."""
+
+    id: Optional[str] = None
     name: str
-    weight: int
-    score: int                    # 0-100 within this dimension
-    weighted_score: float         # score * weight / 100 — convenience, model or caller may fill
+    weight: float
+    score: int                      # 0-100 within this dimension
     reasoning: str
-    evidence: List[str] = Field(default_factory=list)
+    evidence_citations: List[str] = Field(default_factory=list)
+
+
+class SimilarProposalAnalysis(BaseModel):
+    """Claude's explicit take on why each retrieved past proposal is relevant."""
+
+    proposal_id: str                # UUID from retrieval, as string
+    relevance_strength: RelevanceStrength
+    why_relevant: str
+    reusable_sections: List[str] = Field(default_factory=list)
 
 
 class DealBreaker(BaseModel):
-    """A hard-disqualifier check result."""
+    """A concern that, if confirmed, would change the recommendation."""
 
-    criterion: str
-    triggered: bool
-    evidence: Optional[str] = None
+    concern: str
+    severity: Severity
+    would_change_recommendation_to: Optional[Recommendation] = None
+    how_to_verify: Optional[str] = None
 
 
 class OpenQuestion(BaseModel):
-    """An unknown the model wants a human to confirm before pursuing."""
+    """An ambiguity in the RFP the proposals lead needs to resolve."""
 
     question: str
     why_it_matters: Optional[str] = None
+    best_guess: Optional[str] = None
 
 
 class ScreeningRationale(BaseModel):
-    """Structured rubric breakdown that Claude is expected to produce."""
+    """Everything the agent produces beyond the top-level fit/recommendation."""
 
+    recommendation_rationale: Optional[str] = None
+    confidence_level: Optional[ConfidenceLevel] = None
+    confidence_notes: Optional[str] = None
+    hard_disqualifier_results: List[HardDisqualifierResult] = Field(default_factory=list)
     dimensions: List[RubricDimensionScore] = Field(default_factory=list)
-    summary: Optional[str] = None
+    effort_reasoning: Optional[str] = None
+    similar_past_proposals_analysis: List[SimilarProposalAnalysis] = Field(default_factory=list)
+    calibration_notes: Optional[str] = None
 
 
 class Screening(BaseModel):
-    """Mirrors the ``screenings`` table. Zero or more per RFP."""
+    """Mirrors the ``screenings`` table. One per screening run; many per RFP."""
 
     model_config = ConfigDict(populate_by_name=True)
 

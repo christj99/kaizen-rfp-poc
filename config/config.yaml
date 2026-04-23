@@ -24,5 +24,8 @@ slack:
 
 llm:
   model: "claude-sonnet-4-5"
-  max_tokens: 4096
+  # Screening output is a rich JSON payload (rubric breakdown + disqualifiers +
+  # dimensions + deal_breakers + open_questions + similar-proposal analysis);
+  # 4096 tokens truncates the response on realistic RFPs. 8192 gives headroom.
+  max_tokens: 8192
   temperature: 0.3

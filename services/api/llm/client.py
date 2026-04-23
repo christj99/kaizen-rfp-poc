@@ -21,13 +21,11 @@ from anthropic import (
     InternalServerError,
     RateLimitError,
 )
-from dotenv import load_dotenv
 
+from .. import _env  # noqa: F401 — populates os.environ from .env
 from ..config.loader import get_config
 from ..db.client import write_audit
 from ..models.audit import AuditEntry
-
-load_dotenv()
 
 log = logging.getLogger(__name__)
 

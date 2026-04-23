@@ -64,10 +64,11 @@ CREATE TABLE IF NOT EXISTS proposal_chunks (
     embedding VECTOR(1536)
 );
 
--- Cosine-distance ivfflat index. Requires ANALYZE after bulk load for best performance.
-CREATE INDEX IF NOT EXISTS idx_proposal_chunks_embedding
-    ON proposal_chunks USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
+-- No ivfflat/HNSW index for the POC: the corpus is tiny (tens of chunks),
+-- and ivfflat with a small dataset silently drops matches when cluster
+-- count exceeds row count. Sequential scan via vector_cosine_ops is
+-- exact and fast at this scale. Re-introduce an HNSW index once the
+-- corpus grows past ~1000 chunks.
 
 CREATE TABLE IF NOT EXISTS drafts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
