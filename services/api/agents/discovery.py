@@ -41,6 +41,7 @@ def fetch_sam_gov_rfps(
     fetch_full_text: bool = True,
     persist: bool = True,
     http_client: Optional[httpx.Client] = None,
+    keyword: Optional[str] = None,
 ) -> List[RFP]:
     """Fetch opportunities matching the given NAICS codes.
 
@@ -88,6 +89,10 @@ def fetch_sam_gov_rfps(
         "postedTo": posted_to,
         "ncode": ",".join(naics_codes),
     }
+    if keyword:
+        # SAM.gov's 'q' param does full-text search over title + description;
+        # supports OR/AND/quoted phrases.
+        params["q"] = keyword
 
     close_client = http_client is None
     client = http_client or httpx.Client(timeout=_DEFAULT_HTTP_TIMEOUT)
