@@ -1,0 +1,179 @@
+# Meridian Data Solutions - Proposal Template
+# Used by: drafting agent
+# Version: 1.0
+#
+# Section types:
+#   static       - Content is reused verbatim across most proposals. Drafting
+#                  agent retrieves from company_profile boilerplate and adapts
+#                  only named entities (agency name, solicitation number).
+#   semi_static  - Content follows a pattern but is adapted per RFP. Drafting
+#                  agent retrieves analogous section from most similar past
+#                  proposal and uses LLM to adapt.
+#   dynamic      - Content must be generated fresh for this RFP. Drafting
+#                  agent uses full context and LLM to generate.
+
+version: "1.0"
+last_updated: "2026-04-23"
+
+template:
+  - section_id: "cover_letter"
+    name: "Cover Letter"
+    type: "static"
+    required: true
+    source: "company_profile.boilerplate_content"
+    adaptation_needed:
+      - "agency_name"
+      - "solicitation_number"
+      - "point_of_contact_name"
+      - "submission_date"
+    guidance: >
+      Standard cover letter. Reuse template verbatim. Only change named entities.
+
+  - section_id: "executive_summary"
+    name: "Executive Summary"
+    type: "dynamic"
+    required: true
+    source: "generated_from_rfp_context"
+    length_target_words: 400
+    structure:
+      - "Opening paragraph establishing Meridian's fit (use boilerplate opener)"
+      - "Three-to-five key differentiators relevant to this RFP"
+      - "High-level technical approach preview"
+      - "Statement of commitment"
+    guidance: >
+      Must be tailored to this specific RFP. Should reflect our understanding
+      of the agency's mission and the specific challenge described in the SOW.
+      Use boilerplate opener (from company_profile) but generate everything
+      after the first sentence fresh.
+
+  - section_id: "company_qualifications"
+    name: "Company Qualifications"
+    type: "semi_static"
+    required: true
+    source: "past_proposal_adaptation + company_profile"
+    length_target_words: 800
+    structure:
+      - "Firm overview (pull from company_profile standard blurb)"
+      - "Relevant certifications and contract vehicles"
+      - "Corporate history summary"
+      - "Staff composition and key leadership"
+      - "Quality commitment (pull from boilerplate)"
+    guidance: >
+      Retrieve the qualifications section from the most similar past proposal.
+      Adapt for this specific RFP by emphasizing the capabilities most
+      relevant to the SOW. Do not invent certifications or vehicles not in
+      company_profile.
+
+  - section_id: "past_performance"
+    name: "Past Performance"
+    type: "semi_static"
+    required: true
+    source: "past_performance_library + relevance_selection"
+    length_target_words: 600
+    structure:
+      - "Introduction tying past performance to this RFP's requirements"
+      - "Three most relevant past performance citations, each including:"
+      - "  - Client name and contract value"
+      - "  - Period of performance"
+      - "  - Scope summary"
+      - "  - Outcome and measurable results"
+      - "  - Relevance to current RFP"
+    guidance: >
+      Select the three past performance entries from company_profile that
+      best match the current RFP's requirements. Prioritize by:
+      (1) domain match (federal civilian > state > defense)
+      (2) technical approach similarity
+      (3) scale similarity
+      (4) recency (prefer last 3 years)
+      Generate the relevance statement fresh for each citation.
+
+  - section_id: "technical_approach"
+    name: "Technical Approach"
+    type: "dynamic"
+    required: true
+    source: "generated_from_rfp_context"
+    length_target_words: 1500
+    structure:
+      - "Our understanding of the technical challenge"
+      - "Proposed solution architecture"
+      - "Technical methodology (phases, activities, deliverables)"
+      - "Risk identification and mitigation"
+      - "Assumptions and dependencies"
+    guidance: >
+      Must be generated fresh. This is the highest-variance section and
+      the one most likely to require human review. Use retrieved context
+      from similar past proposals for structural patterns but do not
+      copy specific technical approaches. Flag any sections where
+      confidence is low for human review.
+
+  - section_id: "staffing_plan"
+    name: "Staffing Plan and Key Personnel"
+    type: "semi_static"
+    required: true
+    source: "past_proposal_adaptation + company_profile"
+    length_target_words: 500
+    structure:
+      - "Proposed team structure"
+      - "Key personnel resumes (placeholder - flag for human)"
+      - "Labor category mapping"
+      - "Surge and scaling plan"
+    guidance: >
+      Generate a notional team structure based on the RFP requirements.
+      FLAG for human: specific named personnel and resume attachments
+      must be selected by the human reviewer. Draft should include a
+      placeholder and explicit flag.
+
+  - section_id: "pricing_narrative"
+    name: "Pricing Narrative"
+    type: "dynamic"
+    required: true
+    source: "generated_structure_only"
+    length_target_words: 400
+    structure:
+      - "Pricing approach summary"
+      - "Labor category rationale"
+      - "Assumptions underlying pricing"
+      - "Discount structure if applicable"
+    guidance: >
+      CRITICAL: Draft the narrative framework only. Do not invent specific
+      dollar amounts or labor rates. Flag explicitly that pricing
+      figures must be populated by the human reviewer from the
+      company's pricing team. The narrative should frame the
+      company's pricing philosophy, not the numbers.
+
+  - section_id: "supporting_attachments"
+    name: "Supporting Attachments"
+    type: "static"
+    required: true
+    source: "checklist_only"
+    guidance: >
+      Generate a checklist of required attachments based on the RFP's
+      Section L requirements. Do not attempt to generate the attachments
+      themselves. Typical items include:
+      - Past performance questionnaires
+      - Financial statements
+      - SAM.gov registration
+      - Representations and certifications
+      - Small business subcontracting plan (if applicable)
+
+provenance_tagging:
+  # Required tags on every generated section to support explainability.
+  # Stored as strings (wrapped in quotes) so YAML doesn't treat the "|"
+  # separators as block-scalar indicators; these entries are documentation
+  # of allowed values, not runtime enums.
+  - '"generated" | "retrieved_from_past_proposal" | "retrieved_from_profile" | "static_boilerplate"'
+  - '"source_ids" | "past_proposal_id[]"'
+  - '"confidence" | "low" | "medium" | "high"'
+  - '"human_review_required" | bool'
+  - '"review_notes" | string (reason for low confidence or human review flag)'
+
+section_dependencies:
+  # Used by drafting orchestration to determine generation order
+  - {section: "cover_letter", depends_on: []}
+  - {section: "executive_summary", depends_on: ["technical_approach"]}
+  - {section: "company_qualifications", depends_on: []}
+  - {section: "past_performance", depends_on: []}
+  - {section: "technical_approach", depends_on: ["past_performance"]}
+  - {section: "staffing_plan", depends_on: ["technical_approach"]}
+  - {section: "pricing_narrative", depends_on: ["technical_approach", "staffing_plan"]}
+  - {section: "supporting_attachments", depends_on: []}

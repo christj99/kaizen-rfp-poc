@@ -1,0 +1,197 @@
+# Meridian Data Solutions - Company Profile
+# Used by: screening agent (fit determination), drafting agent (boilerplate content)
+# Version: 1.0
+# Last updated: 2026-04-23
+
+company:
+  name: "Meridian Data Solutions"
+  legal_name: "Meridian Data Solutions, Inc."
+  founded: 2015
+  headquarters: "Silver Spring, Maryland"
+  employees: 118
+  revenue_fy2025_usd: 34_800_000
+  ownership: "Privately held; founder-led"
+  website: "meridiandata.example"
+  cage_code: "8MDS2"
+  duns: "117284302"
+  uei: "MRDN8402KLMQ"
+  sam_registration_status: "Active"
+  ein: "47-3981204"
+
+mission: >
+  Meridian Data Solutions builds modern data platforms for federal and state
+  agencies. We help government organizations consolidate legacy data systems,
+  operationalize analytics, and responsibly deploy AI for mission delivery.
+  Our work focuses on high-stakes domains where data quality, auditability,
+  and compliance are non-negotiable.
+
+positioning:
+  primary_market: "federal_civilian"
+  secondary_market: "state_local"
+  market_mix_percent:
+    federal_civilian: 55
+    state_local: 35
+    federal_defense: 10
+  ideal_customer_profile: >
+    Federal civilian agencies and state-level data organizations modernizing
+    legacy data infrastructure, with active executive sponsorship and
+    three-to-five-year modernization roadmaps.
+
+capabilities:
+  core:
+    - name: "Cloud data platform engineering"
+      depth: "deep"
+      description: >
+        Design and implementation of cloud-native data warehouses,
+        lakehouses, and data mesh architectures on AWS, Azure, and GCP.
+        Snowflake and Databricks delivery experience across 40+ projects.
+    - name: "ETL/ELT and data pipeline engineering"
+      depth: "deep"
+      description: >
+        Production data pipelines using Airflow, dbt, Fivetran, and
+        custom Python frameworks. Strong track record migrating
+        SSIS and Informatica workloads to modern orchestration.
+    - name: "Analytics and BI enablement"
+      depth: "deep"
+      description: >
+        Tableau, Power BI, and Looker dashboard development; semantic
+        layer design; executive reporting for mission-critical KPIs.
+    - name: "Data governance and quality"
+      depth: "deep"
+      description: >
+        Collibra and Alation implementations; custom data quality
+        frameworks; FISMA-aligned data classification and lineage.
+  emerging:
+    - name: "Applied AI/ML for government"
+      depth: "growing"
+      description: >
+        LLM-based document processing, classification workflows,
+        and RAG implementations. Four delivered projects; actively
+        expanding team.
+    - name: "Geospatial analytics"
+      depth: "moderate"
+      description: >
+        ESRI ArcGIS and open-source geospatial stack for mapping,
+        location intelligence, and spatial analysis use cases.
+  explicitly_not:
+    - "Custom application development outside of data domain"
+    - "Hardware procurement or integration"
+    - "Enterprise ERP implementation"
+    - "Cybersecurity penetration testing or SOC services"
+
+past_performance_highlights:
+  - project: "Department of Commerce - Trade Data Modernization"
+    value_usd: 8_400_000
+    period: "2022-2024"
+    role: "Prime"
+    outcome: "Completed on schedule and 4% under budget"
+    relevance_tags: ["federal", "data_platform", "cloud_migration", "analytics"]
+  - project: "Maryland Department of Human Services - Benefits Analytics Platform"
+    value_usd: 4_200_000
+    period: "2023-2025"
+    role: "Prime"
+    outcome: "Ongoing; Phase 1 delivered 2024"
+    relevance_tags: ["state", "social_services", "analytics", "data_governance"]
+  - project: "HHS CMS - Healthcare Data Pipeline Modernization"
+    value_usd: 6_100_000
+    period: "2021-2023"
+    role: "Subcontractor to Booz Allen Hamilton"
+    outcome: "Delivered; extended twice"
+    relevance_tags: ["federal", "healthcare", "data_pipelines", "cloud"]
+  - project: "Virginia Department of Transportation - Traffic Data Warehouse"
+    value_usd: 2_900_000
+    period: "2022-2023"
+    role: "Prime"
+    outcome: "Delivered"
+    relevance_tags: ["state", "transportation", "geospatial", "analytics"]
+
+certifications_and_vehicles:
+  corporate:
+    - "CMMI Level 3 (appraised 2023)"
+    - "ISO 9001:2015"
+    - "ISO 27001:2022"
+  contract_vehicles:
+    - name: "GSA Multiple Award Schedule (MAS)"
+      sin: ["54151S", "518210C"]
+      status: "Active"
+    - name: "GSA 8(a) STARS III"
+      status: "Not eligible (graduated from 8(a) in 2024)"
+    - name: "NASA SEWP VI"
+      status: "Prime, active"
+    - name: "Maryland CATS+"
+      status: "Active"
+  clearances:
+    facility_clearance_level: "Secret"
+    staff_with_clearance: 14
+    ts_sci_staff: 3
+
+differentiators:
+  - "Federal civilian data modernization track record with three completed
+    programs over $5M"
+  - "CMMI Level 3 appraised delivery processes"
+  - "In-house data governance practice (9 dedicated staff)"
+  - "Depth in both legacy SSIS/Informatica migration and greenfield
+    cloud-native implementations"
+  - "Small enough to be nimble (~120 people) but large enough to prime
+    mid-size contracts"
+
+hard_disqualifiers:
+  - "Requires Top Secret / SCI facility clearance"
+  - "Pure application development with no data component"
+  - "Contract value below $250,000 (below our proposal ROI threshold)"
+  - "Requires prime contractor with 500+ employees"
+  - "Set-aside categories we don't qualify for (8(a), HUBZone, SDVOSB, WOSB)"
+
+target_contract_profile:
+  value_range_usd:
+    sweet_spot_low: 1_500_000
+    sweet_spot_high: 12_000_000
+    absolute_minimum: 250_000
+    absolute_maximum: 25_000_000
+  duration_preference: "12-36 months with option years"
+  role_preference: "Prime preferred, sub considered for strategic agencies"
+  bid_no_bid_capacity: "3-5 active pursuits per month"
+
+geographic_focus:
+  primary: ["DC metro", "Maryland", "Virginia"]
+  secondary: ["Delaware", "Pennsylvania", "North Carolina"]
+  remote_delivery: "Supported for 90% of work; on-site available DMV"
+
+boilerplate_content:
+  # Used by drafting agent as static content across proposals
+  exec_summary_opener: >
+    Meridian Data Solutions is pleased to submit this proposal to
+    {{agency_name}} in response to {{solicitation_number}}. With over a
+    decade of federal and state data modernization experience and a CMMI
+    Level 3-appraised delivery organization, Meridian is uniquely positioned
+    to deliver the outcomes {{agency_name}} seeks under this requirement.
+  qualifications_standard_blurb: >
+    Founded in 2015 and headquartered in Silver Spring, Maryland, Meridian
+    Data Solutions employs 118 data engineers, architects, and analysts
+    focused exclusively on government data modernization. Our firm holds
+    an active Secret facility clearance, ISO 9001:2015 and ISO 27001:2022
+    certifications, and delivers against a CMMI Level 3-appraised process
+    framework.
+  quality_commitment: >
+    Every Meridian engagement follows our Mission Delivery Framework, which
+    combines Agile delivery practices with our CMMI Level 3 process
+    controls. Weekly status reviews, monthly technical reviews, and
+    quarterly executive briefings ensure full transparency with our
+    government partners throughout the engagement lifecycle.
+
+points_of_contact:
+  primary:
+    name: "Dr. Rachel Okonkwo"
+    title: "Chief Growth Officer"
+    email: "r.okonkwo@meridiandata.example"
+    phone: "301-555-0184"
+  technical:
+    name: "Marcus Halloran"
+    title: "Chief Technology Officer"
+    email: "m.halloran@meridiandata.example"
+    phone: "301-555-0191"
+  contracts:
+    name: "Theresa Chen"
+    title: "Director of Contracts"
+    email: "t.chen@meridiandata.example"
+    phone: "301-555-0177"

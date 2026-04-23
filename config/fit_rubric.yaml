@@ -1,0 +1,207 @@
+# Meridian Data Solutions - RFP Fit Rubric
+# Used by: screening agent
+# Version: 1.0
+# Calibration notes: rubric designed to be iterated against real outputs.
+# Change version string when weights or criteria change.
+
+version: "1.0"
+last_updated: "2026-04-23"
+calibration_status: "initial"  # initial | calibrated | production
+model_notes: >
+  Rubric is intentionally opinionated on hard disqualifiers (fast kill)
+  and deliberately weighted toward past performance relevance (our
+  largest historical driver of win/loss). Weights should be revisited
+  after every 20 screenings with human override data.
+
+# Hard disqualifiers - if any are triggered, recommendation is "skip"
+# regardless of score. Fit score still computed for calibration purposes.
+hard_disqualifiers:
+  - id: "hd_clearance_tssci"
+    criterion: "Requires Top Secret / SCI facility clearance"
+    evidence_sources: ["security_requirements_section", "clearance_requirements"]
+    check_guidance: >
+      Look for explicit TS/SCI facility clearance requirements for the
+      prime contractor. Individual staff TS/SCI requirements are acceptable
+      - we have 3 cleared staff. Disqualify only if the company itself must
+      hold TS/SCI FCL.
+
+  - id: "hd_contract_value_floor"
+    criterion: "Estimated contract value below $250,000"
+    evidence_sources: ["solicitation_value", "NAICS_size_standard"]
+    check_guidance: >
+      Use stated contract value or reasonable estimate from scope. If value
+      not disclosed, estimate based on period of performance and labor mix.
+      Flag as open question if genuinely ambiguous.
+
+  - id: "hd_set_aside_exclusion"
+    criterion: "Set-aside category we don't qualify for"
+    evidence_sources: ["solicitation_type", "set_aside_designation"]
+    check_guidance: >
+      Disqualify if 8(a), HUBZone, SDVOSB, WOSB, or EDWOSB set-aside.
+      Small business set-asides are acceptable (we are small business
+      under NAICS 541511 and 541512).
+
+  - id: "hd_out_of_domain"
+    criterion: "Scope is outside data and analytics domain"
+    evidence_sources: ["statement_of_work", "scope_summary"]
+    check_guidance: >
+      Disqualify if work is primarily hardware procurement, custom
+      application development outside data domain, cybersecurity SOC
+      services, or ERP implementation. Data-adjacent work (e.g., a data
+      platform supporting a larger application) is acceptable.
+
+# Weighted dimensions - scored 0-100 each, weighted-averaged to fit score.
+# Total weights should sum to 100.
+weighted_dimensions:
+  - id: "wd_past_performance_relevance"
+    name: "Past performance relevance"
+    weight: 30
+    scoring_guidance: >
+      Score based on the similarity between the RFP's required experience
+      and Meridian's demonstrable past performance. Consider domain
+      (federal civilian, state, defense), technology stack, and scope.
+
+      90-100: Direct match - we have completed a nearly identical project
+        in the last 3 years with strong outcomes and can provide the
+        exact past performance citation required.
+      70-89: Strong match - we have completed similar work but with
+        some gaps (different tech stack, adjacent domain, subcontractor
+        role instead of prime).
+      50-69: Partial match - we have relevant capabilities but past
+        performance is older (3-5 years), smaller scale, or in a
+        tangential domain.
+      25-49: Weak match - our past work is capability-relevant but we
+        lack citable past performance examples aligned to this RFP.
+      0-24: No match - we would be stretching to justify past
+        performance relevance.
+    evidence_sources:
+      - "past_performance_requirements"
+      - "similar_past_proposals"
+      - "agency_domain"
+    sub_criteria:
+      - "Domain alignment (federal civilian vs. state vs. defense)"
+      - "Technology stack alignment"
+      - "Scale of prior engagement vs. this RFP"
+      - "Prime vs. subcontractor role in past engagement"
+
+  - id: "wd_technical_capability_match"
+    name: "Technical capability match"
+    weight: 25
+    scoring_guidance: >
+      Score based on how well Meridian's core capabilities align with
+      the technical requirements of the RFP.
+
+      90-100: Every required capability is in our 'core' capability list
+        with deep depth. No stretch.
+      70-89: Most requirements in 'core' capabilities; 1-2 requirements
+        in 'emerging' capabilities or require modest upskilling.
+      50-69: Mix of core and emerging capabilities required; some
+        requirements would need new hires or partner support.
+      25-49: Majority of requirements are outside our stated depth; we
+        could deliver but would depend heavily on partners or new hires.
+      0-24: Requirements are fundamentally outside our capability set.
+    evidence_sources:
+      - "technical_requirements_section"
+      - "required_skills_or_tools"
+      - "company_profile_capabilities"
+    sub_criteria:
+      - "Primary technical domain match"
+      - "Required tools/platforms match"
+      - "Stretch versus core work"
+
+  - id: "wd_contract_vehicle_and_naics"
+    name: "Contract vehicle and NAICS fit"
+    weight: 15
+    scoring_guidance: >
+      Score based on procurement path alignment.
+
+      90-100: Solicitation is on a vehicle we hold (GSA MAS SIN 54151S,
+        SEWP VI, Maryland CATS+) with a NAICS we service.
+      70-89: NAICS match; vehicle is open competition or one we can
+        subcontract on.
+      50-69: NAICS adjacent to our registered codes; vehicle requires
+        teaming.
+      25-49: NAICS mismatch but scope aligns; would require NAICS
+        amendment or challenge.
+      0-24: Off-vehicle and out-of-NAICS.
+    evidence_sources:
+      - "solicitation_naics"
+      - "contract_vehicle"
+      - "company_profile_vehicles"
+
+  - id: "wd_contract_value_fit"
+    name: "Contract value fit"
+    weight: 10
+    scoring_guidance: >
+      Score based on alignment with our sweet-spot deal size ($1.5M-$12M).
+
+      90-100: Within sweet-spot range.
+      70-89: Slightly above or below sweet spot but within acceptable
+        range ($250K-$25M).
+      50-69: At the edges of our acceptable range.
+      25-49: Significantly below our sweet spot (proposal ROI concern)
+        or above our capacity.
+      0-24: Outside acceptable range; see also hard disqualifier hd_contract_value_floor.
+    evidence_sources:
+      - "solicitation_value"
+      - "period_of_performance"
+      - "company_profile_target_contract_profile"
+
+  - id: "wd_deadline_feasibility"
+    name: "Deadline feasibility"
+    weight: 10
+    scoring_guidance: >
+      Score based on our ability to produce a competitive proposal
+      given the time available and current pursuit load.
+
+      90-100: 30+ days to deadline; routine proposal structure;
+        high reuse potential from prior work.
+      70-89: 14-29 days to deadline OR structure requires moderate
+        original content.
+      50-69: 7-13 days OR significant new content required.
+      25-49: Less than 7 days; would require emergency prioritization.
+      0-24: Insufficient time to produce a competitive response.
+    evidence_sources:
+      - "response_due_date"
+      - "solicitation_structure"
+      - "current_pursuit_load"
+
+  - id: "wd_geographic_and_clearance"
+    name: "Geographic and clearance alignment"
+    weight: 10
+    scoring_guidance: >
+      Score based on location and clearance requirements vs. our posture.
+
+      90-100: Primary geography (DMV) or fully remote; clearance
+        requirements within our existing staff pool.
+      70-89: Secondary geography or mixed on-site/remote; Secret
+        clearance requirements we can staff.
+      50-69: Geography requires travel or short-term relocation;
+        clearance requirements are stretch but feasible.
+      25-49: Geography is outside our current footprint; clearance
+        requirements would require new cleared hires.
+      0-24: Geography or clearance requirements are prohibitive.
+    evidence_sources:
+      - "place_of_performance"
+      - "clearance_requirements"
+      - "company_profile_geographic_focus"
+
+# Output format expectations - used by prompt design
+output_schema:
+  required_fields:
+    - "fit_score"               # 0-100, weighted average
+    - "recommendation"          # pursue | maybe | skip
+    - "recommendation_rationale" # 2-3 sentence summary
+    - "dimension_scores"        # per-dimension breakdown
+    - "hard_disqualifier_results" # per-disqualifier check
+    - "effort_estimate"         # low | medium | high
+    - "deal_breakers"           # items that would change recommendation
+    - "open_questions"          # things we need to verify
+    - "similar_past_proposals"  # top 3 from RAG
+    - "confidence_level"        # low | medium | high
+
+recommendation_thresholds:
+  # Maps fit_score to recommendation when no hard disqualifiers triggered
+  pursue: 75   # >= 75
+  maybe: 50    # 50-74
+  skip: 49     # <= 49

@@ -1,0 +1,52 @@
+Evaluate the following RFP for Meridian Data Solutions.
+
+# The RFP
+
+**Title:** {{rfp_title}}
+**Agency:** {{rfp_agency}}
+**Solicitation Number:** {{rfp_solicitation_number}}
+**NAICS Code(s):** {{rfp_naics}}
+**Set-Aside:** {{rfp_set_aside}}
+**Estimated Value:** {{rfp_value_estimate}}
+**Response Due:** {{rfp_due_date}}
+**Place of Performance:** {{rfp_place_of_performance}}
+
+**Full RFP text (or excerpt):**
+
+{{rfp_full_text}}
+
+---
+
+# Meridian's Current Profile
+
+```yaml
+{{company_profile_yaml}}
+```
+
+---
+
+# The Fit Rubric
+
+```yaml
+{{fit_rubric_yaml}}
+```
+
+---
+
+# Similar Past Proposals
+
+The following past proposals were retrieved from Meridian's knowledge base based on semantic similarity to this RFP. Use them to ground your past-performance relevance assessment and to identify reusable content.
+
+{{similar_past_proposals_block}}
+
+---
+
+# Current Context
+
+**Current pursuit load:** {{current_pursuit_load}}
+**Days until response due:** {{days_to_deadline}}
+**Current date:** {{current_date}}
+
+---
+
+Now produce your assessment as a JSON object conforming to the schema in your system instructions. Ground every claim in evidence. Be honest about uncertainty. Do not include text outside the JSON.
