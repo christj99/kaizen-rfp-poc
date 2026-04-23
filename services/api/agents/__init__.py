@@ -1,4 +1,39 @@
-from .discovery import DiscoveryError, fetch_sam_gov_rfps
+from .discovery import (
+    AdapterBase,
+    AdapterRunResult,
+    DiscoveryRunResult,
+    EmailIMAPAdapter,
+    HealthStatus,
+    SAMGovAdapter,
+    adapter_health_snapshot,
+    build_adapter_by_name,
+    build_all_adapters,
+    build_record_from_pdf,
+    build_record_from_structured,
+    build_record_from_url,
+    ingest_raw_record,
+    normalize,
+    run_adapter,
+    run_discovery,
+)
 from .screening import screen_rfp
 
-__all__ = ["DiscoveryError", "fetch_sam_gov_rfps", "screen_rfp"]
+__all__ = [
+    "AdapterBase",
+    "AdapterRunResult",
+    "DiscoveryRunResult",
+    "EmailIMAPAdapter",
+    "HealthStatus",
+    "SAMGovAdapter",
+    "adapter_health_snapshot",
+    "build_adapter_by_name",
+    "build_all_adapters",
+    "build_record_from_pdf",
+    "build_record_from_structured",
+    "build_record_from_url",
+    "ingest_raw_record",
+    "normalize",
+    "run_adapter",
+    "run_discovery",
+    "screen_rfp",
+]
