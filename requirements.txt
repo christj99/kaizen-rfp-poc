@@ -1,28 +1,33 @@
+# Pins are loose (>=) rather than exact because this POC targets Python 3.11+,
+# and older exact pins often lack wheels for newer interpreters (e.g. 3.13/3.14),
+# forcing source builds. Lower bounds below are the earliest versions that still
+# expose the APIs this project uses.
+
 # Web / API
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-python-multipart==0.0.9
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+python-multipart>=0.0.9
 
 # UI
-streamlit==1.39.0
+streamlit>=1.39.0
 
 # LLM
-anthropic==0.39.0
-openai==1.52.0           # embeddings only
+anthropic>=0.39.0
+openai>=1.52.0           # embeddings only
 
 # DB
-psycopg2-binary==2.9.9
-pgvector==0.3.6
-sqlalchemy==2.0.35
+psycopg2-binary>=2.9.10
+pgvector>=0.3.6
+sqlalchemy>=2.0.35
 
 # Config / models
-pydantic==2.9.2
-pydantic-settings==2.5.2
-pyyaml==6.0.2
-python-dotenv==1.0.1
+pydantic>=2.9.2
+pydantic-settings>=2.5.2
+pyyaml>=6.0.2
+python-dotenv>=1.0.1
 
 # HTTP / parsing
-requests==2.32.3
-httpx==0.27.2
-beautifulsoup4==4.12.3
-pypdf==5.0.1
+requests>=2.32.3
+httpx>=0.27.2
+beautifulsoup4>=4.12.3
+pypdf>=5.0.1
