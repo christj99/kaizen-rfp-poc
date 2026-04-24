@@ -121,6 +121,22 @@ Six workflows ship under `services/n8n/workflows/`:
 
 ### Importing the workflows into n8n
 
+**Option A — via the importer script (recommended).** Faster and safe to re-run:
+
+```bash
+# 1. Generate an n8n API key: n8n UI -> Settings -> n8n API -> Create an API key.
+# 2. Paste it into .env as N8N_API_KEY=eyJ...
+# 3. Import everything (all 6 workflows land inactive):
+./.venv/Scripts/python.exe scripts/import_n8n_workflows.py
+
+# Or, import AND activate the two scheduled workflows in one go:
+./.venv/Scripts/python.exe scripts/import_n8n_workflows.py --activate
+```
+
+The importer updates existing workflows by name (so re-runs won't duplicate) and auto-activates `Discovery — Email (primary)` and `Draft completion watcher` when `--activate` is passed.
+
+**Option B — manually via the n8n UI.** If you'd rather click through:
+
 1. Open http://localhost:5678, log in with `N8N_BASIC_AUTH_USER` / `N8N_BASIC_AUTH_PASSWORD` from `.env`.
 2. Click **Workflows** → **Create workflow** → kebab menu → **Import from file** (or drag the JSON onto the canvas).
 3. Repeat for each file under `services/n8n/workflows/`.
