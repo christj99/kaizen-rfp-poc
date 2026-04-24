@@ -51,9 +51,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _CONFIG_DIR = _REPO_ROOT / "config"
 _PROMPTS_DIR = _REPO_ROOT / "services" / "api" / "llm" / "prompts"
 
-# Drafting output is 4-6k tokens typically (8 sections × 400-1500 words);
-# screening's 8192 default isn't enough headroom.
-_DRAFT_MAX_TOKENS = 16000
+# Drafting output for an 8-section first-draft proposal is typically
+# 8-12k tokens; on RFPs with a heavy technical-approach section (the
+# Cloud Data Warehouse / Fiscal Service-style scope) it can run higher.
+# 16000 truncated mid-section in observed runs and tripped the retry
+# loop with the same outcome. 32000 gives ~2-3× headroom on a realistic
+# pursue-band draft. Sonnet 4.5 supports up to 64000 output tokens.
+_DRAFT_MAX_TOKENS = 32000
 
 # Map Claude's provenance.source_type strings -> our 3-value enum.
 _PROVENANCE_MAP: Dict[str, DraftSectionProvenance] = {

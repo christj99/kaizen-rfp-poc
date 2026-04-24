@@ -1,6 +1,6 @@
 # Top-level runtime config. Hot-reloadable — the Settings page writes this file
 # back and calls reload_config() without restarting the API.
-mode: manual                          # manual | chain | full_auto
+mode: full_auto                          # manual | chain | full_auto
 
 screening:
   threshold_pursue: 75

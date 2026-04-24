@@ -37,6 +37,34 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-24 — Drafting max_tokens bumped 16000 → 32000
+
+Live full_auto run on a real Treasury / Fiscal Service "Cloud Data
+Warehouse Modernization" RFP failed the drafting step. Both the first
+Claude call and the auto-retry returned valid JSON that was truncated
+mid-string in the very first section (Cover Letter), tripping
+``LLMClient._parse_json``'s "non-JSON twice" terminal failure. Job
+ended at ``status='failed'`` with the response excerpt preserved in
+``error_message`` for postmortem.
+
+Root cause: ``max_tokens=16000`` wasn't enough headroom for an
+8-section first-draft proposal on a substantive RFP. Empirical draft
+sizes:
+- Lightweight RFPs (DHHS Benefits Warehouse synthetic):     ~7-8k tokens
+- DOC Cloud Services no-bid response:                       ~2k tokens
+- Cloud Data Warehouse / Fiscal Service (truncated):        > 16k tokens
+
+Bumped ``_DRAFT_MAX_TOKENS`` to 32000 — comfortable 2-3× headroom on
+realistic pursue-band drafts. Sonnet 4.5's ceiling is 64000.
+
+**Demo-side implication:** When drafting fails, the user currently has
+no Slack signal — the draft_completion_watcher only fires "draft
+ready" cards on ``status='completed'``. Failed jobs sit silently in
+``draft_jobs`` with ``error_message`` populated. Worth surfacing as a
+"draft failed" Slack card from the watcher so a real failure during
+the demo doesn't stay invisible. Not done in this commit; flagging
+for Phase 5 work or a follow-up Phase 4 patch.
+
 ### 2026-04-24 — Slack notification threshold lowered from 75 → 50
 
 Maybe-scored RFPs (fit 50–74) tend to surface the strongest *emergent*
