@@ -49,19 +49,26 @@ Pre-screening test RFP I constructed to validate the pipeline end-to-end.
 
 ## Limitations in extraction / parsing (deferred; flag if unacceptable)
 
-### NAICS regex false positives on email ingestion
+### NAICS regex false positives on email ingestion ~~(unfixed)~~ **fixed 2026-04-23**
 
-The email normalizer uses `\b(\d{6})\b` to pull NAICS codes from body text. On
-the DOC Cloud RFP it extracted `['202612', '518210']` — `518210` is correct;
-`202612` is a random 6-digit sequence in the PDF (possibly a figure caption or
-appendix reference). Screening itself reasoned from `full_text`, not the
-extracted NAICS, so the noise didn't affect the recommendation. But the RFP
-detail view and the Dashboard's NAICS facet will display the noise code.
+Original behavior: the email normalizer used `\b(\d{6})\b` and extracted
+`['202612', '518210']` from the DOC Cloud RFP — only `518210` is real NAICS.
 
-**Options:**
-- Narrower regex (e.g. `NAICS\s*:?\s*(\d{6})` — requires the "NAICS" marker)
-- LLM-based extraction gated behind `sources.email.use_llm_extraction` (flag exists in config; default off per plan)
-- Accept noise and show a "verify" badge next to extracted fields in UI
+**Fix (commit on 2026-04-23):** two-pass extractor in
+`services/api/agents/discovery/normalizer.py::_extract_naics`.
+- Pass 1: proximity match — codes within ~20 chars after the word "NAICS"
+  (case-insensitive). Highest confidence.
+- Pass 2: sector-prefix-validated fallback — a 6-digit token is accepted only
+  if its first two digits are a valid NAICS sector (11, 21, 22, 23, 31-33,
+  42, 44-45, 48-49, 51-56, 61-62, 71-72, 81, 92). Sectors 20, 99, etc. are
+  silently rejected.
+
+Re-ran extraction on the stored DOC Cloud `full_text` — now returns
+`['518210']` cleanly. 7 synthetic unit cases all pass.
+
+LLM-based extraction is still reserved behind
+`sources.email.use_llm_extraction` (default off). The regex approach is
+sufficient for the current demo corpus.
 
 ### Email subject → RFP title verbatim
 

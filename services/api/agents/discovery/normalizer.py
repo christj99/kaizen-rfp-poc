@@ -37,7 +37,32 @@ def normalize(record: RawIngestionRecord) -> RFP:
 
 # ---------- email ----------------------------------------------------
 
-_NAICS_RE = re.compile(r"\b(\d{6})\b")
+# NAICS codes are 6 digits with a valid first-2 "sector" prefix. This short
+# list is the complete set of current sectors per the 2022 NAICS manual;
+# codes that don't match a sector prefix (e.g. '202612' — sector 20 doesn't
+# exist) used to leak through the naive ``\b\d{6}\b`` regex.
+_NAICS_SECTOR_PREFIXES = (
+    "11", "21", "22", "23",
+    "31", "32", "33",
+    "42",
+    "44", "45",
+    "48", "49",
+    "51", "52", "53", "54", "55", "56",
+    "61", "62",
+    "71", "72",
+    "81",
+    "92",
+)
+_NAICS_SECTOR_RE = re.compile(
+    rf"\b(?:{'|'.join(_NAICS_SECTOR_PREFIXES)})\d{{4}}\b"
+)
+# Proximity match: codes immediately preceded by the word "NAICS". These get
+# priority + lower false-positive risk.
+_NAICS_KEYWORD_RE = re.compile(
+    rf"\bNAICS\b[^\d]{{0,20}}((?:{'|'.join(_NAICS_SECTOR_PREFIXES)})\d{{4}})",
+    re.IGNORECASE,
+)
+
 _DEADLINE_KEYWORDS = re.compile(
     r"(?:response\s+due|due\s+date|proposal\s+due|submission\s+deadline|response\s+deadline|closing\s+date|deadline)\s*[:\-]?\s*(.{0,60})",
     re.IGNORECASE,
@@ -92,16 +117,31 @@ def _agency_from_sender(from_addr: str) -> Optional[str]:
     return None
 
 
-def _extract_naics(text: str) -> List[str]:
+def _extract_naics(text: str, *, max_codes: int = 3) -> List[str]:
+    """Extract up to ``max_codes`` unique NAICS codes from ``text``.
+
+    Two-pass strategy. Codes appearing within ~20 chars after the word
+    "NAICS" win first — highest confidence. We fall back to sector-prefix-
+    validated 6-digit tokens anywhere in the text for cases where the RFP
+    prose lists codes without the explicit "NAICS" marker.
+    """
     if not text:
         return []
-    # NAICS codes are 6 digits. Grab up to 3 unique codes from the text.
-    codes = []
-    for m in _NAICS_RE.finditer(text):
-        code = m.group(1)
+
+    codes: List[str] = []
+
+    def _add(code: str) -> None:
         if code not in codes:
             codes.append(code)
-        if len(codes) >= 3:
+
+    for m in _NAICS_KEYWORD_RE.finditer(text):
+        _add(m.group(1))
+        if len(codes) >= max_codes:
+            return codes
+
+    for m in _NAICS_SECTOR_RE.finditer(text):
+        _add(m.group(0))
+        if len(codes) >= max_codes:
             break
     return codes
 
