@@ -34,6 +34,15 @@ services:
       N8N_RUNNERS_ENABLED: "true"
       WEBHOOK_URL: http://localhost:${N8N_PORT:-5678}/
       GENERIC_TIMEZONE: America/New_York
+      # Phase 4: make the API base URL, Streamlit URL, Slack webhook, and
+      # notification threshold available to workflow expressions as
+      # {{ $env.KAIZEN_API_URL }}, {{ $env.SLACK_WEBHOOK_URL }}, etc.
+      # n8n requires N8N_BLOCK_ENV_ACCESS_IN_NODE=false to expose $env.
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      KAIZEN_API_URL: http://host.docker.internal:${API_PORT:-8000}
+      KAIZEN_UI_URL: http://localhost:${STREAMLIT_PORT:-8501}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      SLACK_NOTIFICATION_THRESHOLD: ${SLACK_NOTIFICATION_THRESHOLD:-75}
     ports:
       - "${N8N_PORT:-5678}:5678"
     volumes:

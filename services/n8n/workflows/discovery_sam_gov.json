@@ -1,0 +1,128 @@
+{
+  "name": "Discovery — SAM.gov (secondary)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "1-trigger",
+      "name": "Every 4 hours (manual during dev)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "hours", "hoursInterval": 4 }
+          ]
+        }
+      },
+      "notes": "Leave workflow inactive in development — SAM.gov's daily quota is small (see docs/sam_gov_issues.md). Trigger manually from the n8n UI when needed."
+    },
+    {
+      "id": "2-run-adapter",
+      "name": "Poll sam_gov_primary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KAIZEN_API_URL }}/discovery/run/sam_gov_primary",
+        "options": { "timeout": 120000 }
+      }
+    },
+    {
+      "id": "3-expand-ids",
+      "name": "Expand new_rfp_ids",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "jsCode": "const out = [];\nfor (const item of items) {\n  const body = item.json || {};\n  for (const a of (body.adapters || [])) {\n    for (const rid of (a.new_rfp_ids || [])) {\n      out.push({ json: { rfp_id: rid, adapter_name: a.adapter_name, adapter_type: a.adapter_type } });\n    }\n  }\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "4-orchestrate",
+      "name": "POST /orchestrate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KAIZEN_API_URL }}/orchestrate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"rfp_id\": \"{{ $json.rfp_id }}\" }",
+        "options": { "timeout": 600000 }
+      }
+    },
+    {
+      "id": "5-filter-score",
+      "name": "Fit ≥ threshold?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1120, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ ($json.screening && $json.screening.fit_score) || 0 }}",
+              "rightValue": "={{ parseInt($env.SLACK_NOTIFICATION_THRESHOLD || '75', 10) }}",
+              "operator": { "type": "number", "operation": "gte" }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "6-fetch-rfp",
+      "name": "GET /rfp/{id}",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KAIZEN_API_URL }}/rfp/{{ $json.rfp_id }}",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "7-format-slack",
+      "name": "Format Block Kit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 200],
+      "parameters": {
+        "jsCode": "const raw = $json;\nconst rfp = raw.rfp || {};\nconst screening = raw.screening || {};\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || '?'} (set-aside: ${meta.set_aside || 'n/a'}; received ${received})`;\n\nconst rationale = screening.rationale || {};\nconst dims = (rationale.dimensions || []).slice(0).sort((a,b) => (b.weight*b.score/100) - (a.weight*a.score/100));\nconst topTwo = dims.slice(0, 2).map(d => `• *${d.name}* — score ${d.score} (weight ${d.weight}): ${(d.reasoning || '').slice(0, 160)}`).join('\\n');\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = `${uiUrl}/?rfp=${rfp.id}`;\nconst recommendation = screening.recommendation || 'unknown';\nconst recEmoji = { pursue: ':white_check_mark:', maybe: ':grey_question:', skip: ':no_entry:' }[recommendation] || ':grey_question:';\n\nconst payload = {\n  text: `SAM.gov RFP screened: ${rfp.title || '(no title)'} — ${recEmoji} ${recommendation} (score ${screening.fit_score})`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `${recEmoji} ${rfp.title || '(no title)'}`, emoji: true } },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n        { type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score ?? '—'}` },\n        { type: 'mrkdwn', text: `*Recommendation*\\n${recommendation}` },\n        { type: 'mrkdwn', text: `*NAICS*\\n${(rfp.naics_codes || []).join(', ') || '—'}` }\n      ]\n    },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    { type: 'section', text: { type: 'mrkdwn', text: `*Top reasons*\\n${topTwo || '_none surfaced_'}` } },\n    { type: 'actions', elements: [\n      { type: 'button', text: { type: 'plain_text', text: 'Review in dashboard' }, url: reviewUrl, style: 'primary' },\n      { type: 'button', text: { type: 'plain_text', text: 'Dismiss' }, value: `dismiss_${rfp.id}` }\n    ] }\n  ]\n};\nreturn [{ json: payload }];"
+      }
+    },
+    {
+      "id": "8-post-slack",
+      "name": "POST to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Every 4 hours (manual during dev)": { "main": [[{ "node": "Poll sam_gov_primary", "type": "main", "index": 0 }]] },
+    "Poll sam_gov_primary":               { "main": [[{ "node": "Expand new_rfp_ids", "type": "main", "index": 0 }]] },
+    "Expand new_rfp_ids":                 { "main": [[{ "node": "POST /orchestrate", "type": "main", "index": 0 }]] },
+    "POST /orchestrate":                  { "main": [[{ "node": "Fit ≥ threshold?", "type": "main", "index": 0 }]] },
+    "Fit ≥ threshold?":                   { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }], []] },
+    "GET /rfp/{id}":                      { "main": [[{ "node": "Format Block Kit", "type": "main", "index": 0 }]] },
+    "Format Block Kit":                   { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
+  }
+}

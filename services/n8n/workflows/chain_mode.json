@@ -1,0 +1,42 @@
+{
+  "name": "Mode test — chain (ingest → screen, no drafting)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "1-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "kaizen-chain-mode",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kaizen/chain-mode",
+        "responseMode": "lastNode"
+      },
+      "notes": "Invoke from anywhere with:\n  POST http://localhost:5678/webhook/kaizen/chain-mode\n  { \"rfp_id\": \"<uuid>\" }\n\nIgnores config.mode — forces chain for this one RFP."
+    },
+    {
+      "id": "2-orchestrate",
+      "name": "POST /orchestrate (chain)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KAIZEN_API_URL }}/orchestrate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"rfp_id\": \"{{ $json.body.rfp_id }}\", \"mode_override\": \"chain\" }",
+        "options": { "timeout": 600000 }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "POST /orchestrate (chain)", "type": "main", "index": 0 }]] }
+  }
+}

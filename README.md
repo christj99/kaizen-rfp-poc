@@ -98,7 +98,59 @@ Behavior is driven by `config/config.yaml`. See that file for the full reference
 
 ## The four modes
 
-_Section coming at Phase 4._
+Behavior is driven by `config.mode` in `config/config.yaml`:
+
+- **`manual`** — Discovery still ingests RFPs. Nothing auto-chains. Humans kick off screening and drafting from the UI or API.
+- **`chain`** — Every newly-ingested RFP is automatically screened. Drafting still requires a human trigger.
+- **`full_auto`** — Screening is automatic. If `screening.fit_score >= drafting.auto_draft_threshold` (default 90), drafting is *also* queued automatically via `POST /rfp/{id}/draft?mode=async`, and the Slack "draft ready" notification fires when the job completes.
+
+The `POST /orchestrate` endpoint reads `config.mode` on every invocation, so flipping modes is a config edit + API restart (or `reload_config()` call from the Settings page in Phase 5). n8n workflows call `/orchestrate` per new RFP — no n8n changes needed when modes change.
+
+## n8n workflows
+
+Six workflows ship under `services/n8n/workflows/`:
+
+| File | Trigger | Purpose |
+|---|---|---|
+| `discovery_email.json` | Schedule (2 min) | **Primary.** Polls Gmail, ingests new emails, runs `/orchestrate`, fires Slack if fit ≥ threshold. |
+| `discovery_sam_gov.json` | Schedule (4 hr) | Secondary. Same pattern against SAM.gov. Leave inactive in dev (quota). |
+| `chain_mode.json` | Webhook `POST /webhook/kaizen/chain-mode {rfp_id}` | Force chain mode for one RFP, regardless of `config.mode`. |
+| `full_auto_mode.json` | Webhook `POST /webhook/kaizen/full-auto-mode {rfp_id}` | Force full_auto for one RFP; kicks off async drafting. |
+| `draft_completion_watcher.json` | Schedule (30 s) | Polls `/draft_jobs?status=completed` and fires "draft ready" Slack notifications. |
+| `slack_notification.json` | Webhook `POST /webhook/kaizen/slack-notify` | Reusable sub-workflow: any tool can POST an RFP id here to trigger a Slack card. |
+
+### Importing the workflows into n8n
+
+1. Open http://localhost:5678, log in with `N8N_BASIC_AUTH_USER` / `N8N_BASIC_AUTH_PASSWORD` from `.env`.
+2. Click **Workflows** → **Create workflow** → kebab menu → **Import from file** (or drag the JSON onto the canvas).
+3. Repeat for each file under `services/n8n/workflows/`.
+4. Each workflow loads with `"active": false`. For the ones you want on cron (`discovery_email.json`, `draft_completion_watcher.json`), toggle the "Active" switch in the top right.
+5. The workflows reference the following environment variables (exposed by `docker-compose.yml`):
+   - `KAIZEN_API_URL` — set to `http://host.docker.internal:8000` automatically
+   - `KAIZEN_UI_URL` — `http://localhost:8501`
+   - `SLACK_WEBHOOK_URL` — pulled from your `.env`
+   - `SLACK_NOTIFICATION_THRESHOLD` — default `75`
+6. No n8n credential objects are required. Every HTTP call either targets a local service or uses the env-provided Slack webhook URL as-is.
+
+### Slack setup
+
+1. Create a Slack app (<https://api.slack.com/apps>) with Incoming Webhooks enabled.
+2. Install the app to your workspace and copy the webhook URL.
+3. Paste it into `.env` as `SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...`
+4. Restart the stack (`./scripts/demo_stop.ps1` then `./scripts/demo_start.ps1`) — n8n reads env at container start.
+
+### Testing a workflow in isolation
+
+In the n8n UI, open any workflow and click **Execute Workflow** (or the "Execute node" button on a specific node). For webhook-triggered ones (`chain_mode`, `full_auto_mode`, `slack_notification`), click **Execute Workflow** once to arm the test URL, then POST to the listed webhook path.
+
+## Demo flow walkthrough
+
+1. `./scripts/demo_start.ps1` (or `.sh`) brings everything up.
+2. Send an email with an RFP (PDF attached) to the address in `DEMO_EMAIL_USERNAME`.
+3. Within 2 minutes, `discovery_email.json` polls Gmail, ingests the message (PDF text extracted), runs `/orchestrate` (which honors `config.mode`), and posts a Slack card if the fit score clears `SLACK_NOTIFICATION_THRESHOLD`.
+4. In `full_auto` mode, high-scoring RFPs also trigger async drafting. `draft_completion_watcher.json` fires a "draft ready" Slack card 5-6 minutes later.
+5. Click "Review in dashboard" in Slack to jump into the Streamlit UI (Phase 5 work).
+6. Need to reset the demo? `./scripts/demo_reset.ps1` — under 60 seconds, clean slate with past proposals re-indexed.
 
 ## Demo flow walkthrough
 

@@ -7,7 +7,10 @@ screening:
   threshold_maybe: 50
 
 drafting:
-  auto_draft_threshold: 90
+  # Minimum fit_score required to auto-queue a drafting job in full_auto mode.
+  # Plan guidance treats 80+ as "obvious pursue"; dropping the default from 90
+  # to 80 keeps full_auto from silently no-op'ing on realistic-looking RFPs.
+  auto_draft_threshold: 80
 
 # Ingestion sources (supplemental plan, amendment 1.B).
 # Each top-level key is a source *family*. Within each family, `adapters:` is

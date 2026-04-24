@@ -1,0 +1,66 @@
+{
+  "name": "Slack notification (reusable)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "1-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "kaizen-slack-notify",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kaizen/slack-notify",
+        "responseMode": "lastNode"
+      },
+      "notes": "Reusable Slack poster. Other workflows (or external tools) POST here to fan a structured payload out to Slack with the same Block Kit shape the discovery workflows use. This exists for parity with the plan's Step 4.4 — the discovery_email and discovery_sam_gov workflows currently format + post inline for portability, but if you want a single choke point, point them at this endpoint instead.\n\nRequest body:\n  POST http://localhost:5678/webhook/kaizen/slack-notify\n  {\n    \"kind\": \"screening\" | \"draft_ready\" | \"info\",\n    \"rfp_id\": \"<uuid>\",\n    \"screening\": { ... optional, for kind='screening' ... },\n    \"draft_id\": \"<uuid>\" (optional, for kind='draft_ready')\n  }"
+    },
+    {
+      "id": "2-fetch-rfp",
+      "name": "GET /rfp/{id}",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KAIZEN_API_URL }}/rfp/{{ $json.body.rfp_id }}",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "3-format",
+      "name": "Format Block Kit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "parameters": {
+        "jsCode": "const incoming = $input.all()[0].json;           // fetched RFP (rfp + screening)\nconst trigger = $input.all()[0].json.body ||      // original webhook body carried through n8n item chain\n                ($('Webhook').item.json.body || {});\nconst rfp = incoming.rfp || {};\nconst screening = incoming.screening || {};\nconst kind = trigger.kind || 'info';\n\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst sender = meta.from || meta.notice_id || meta.filename || meta.url || '';\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = sourceType === 'email'\n  ? `Source: email from ${sender} (received ${received})`\n  : sourceType === 'sam_gov'\n    ? `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || ''} (received ${received})`\n    : `Source: ${sourceType} ${sender} (received ${received})`;\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = (kind === 'draft_ready' && trigger.draft_id)\n  ? `${uiUrl}/?draft=${trigger.draft_id}`\n  : `${uiUrl}/?rfp=${rfp.id}`;\n\nconst header = kind === 'draft_ready'\n  ? `:memo: Draft ready — ${rfp.title || '(no title)'}`\n  : `RFP: ${rfp.title || '(no title)'}`;\n\nconst fields = [\n  { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n];\nif (screening.fit_score !== undefined) {\n  fields.push({ type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score}` });\n  fields.push({ type: 'mrkdwn', text: `*Recommendation*\\n${screening.recommendation || '—'}` });\n}\n\nconst payload = {\n  text: header,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: header, emoji: true } },\n    { type: 'section', fields },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    { type: 'actions', elements: [\n      { type: 'button', text: { type: 'plain_text', text: 'Review in dashboard' }, url: reviewUrl, style: 'primary' },\n      { type: 'button', text: { type: 'plain_text', text: 'Dismiss' }, value: `dismiss_${rfp.id}` }\n    ] }\n  ]\n};\nreturn [{ json: payload }];"
+      }
+    },
+    {
+      "id": "4-post-slack",
+      "name": "POST to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook":          { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
+    "GET /rfp/{id}":    { "main": [[{ "node": "Format Block Kit", "type": "main", "index": 0 }]] },
+    "Format Block Kit": { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
+  }
+}

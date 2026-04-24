@@ -1,0 +1,111 @@
+{
+  "name": "Draft completion watcher",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "1-trigger",
+      "name": "Every 30 seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "seconds", "secondsInterval": 30 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2-window",
+      "name": "Compute 'since' marker",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "parameters": {
+        "jsCode": "// Use n8n workflow static data to remember the last tick. On first run,\n// default to 'now - 5 minutes' so we don't replay ancient completions.\nconst staticData = $getWorkflowStaticData('global');\nconst last = staticData.lastCheckIso;\nconst since = last || new Date(Date.now() - 5 * 60 * 1000).toISOString();\nconst now = new Date().toISOString();\nstaticData.lastCheckIso = now;\nreturn [{ json: { since, now } }];"
+      }
+    },
+    {
+      "id": "3-list-jobs",
+      "name": "GET /draft_jobs (completed since)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KAIZEN_API_URL }}/draft_jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "status", "value": "completed" },
+            { "name": "since", "value": "={{ $json.since }}" },
+            { "name": "limit", "value": "50" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "4-split",
+      "name": "One item per job",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "allOtherFields"
+      },
+      "notes": "httpRequest wraps the array response under .data when the response is a JSON array — splits out individual job objects."
+    },
+    {
+      "id": "5-fetch-context",
+      "name": "GET /rfp/{id}",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KAIZEN_API_URL }}/rfp/{{ $json.rfp_id }}",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "6-format",
+      "name": "Format draft-ready Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300],
+      "parameters": {
+        "jsCode": "const raw = $json;\nconst rfp = raw.rfp || {};\nconst screening = raw.screening || {};\nconst job = $input.all().map(i => i.json)[0];\nconst draftId = (job && job.draft_id) || (raw.draft && raw.draft.id) || null;\n\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst sender = meta.from || meta.notice_id || meta.filename || meta.url || '';\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = sourceType === 'email'\n  ? `Source: email from ${sender} (received ${received})`\n  : sourceType === 'sam_gov'\n    ? `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || ''} (received ${received})`\n    : `Source: ${sourceType} ${sender} (received ${received})`;\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = draftId ? `${uiUrl}/?draft=${draftId}` : `${uiUrl}/?rfp=${rfp.id}`;\nconst apiUrl = $env.KAIZEN_API_URL || 'http://host.docker.internal:8000';\nconst exportUrl = draftId ? `${apiUrl}/draft/${draftId}/export` : null;\n\nconst payload = {\n  text: `:memo: Draft ready — ${rfp.title || '(no title)'}`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `:memo: Draft ready — ${rfp.title || '(no title)'}`, emoji: true } },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n        { type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score ?? '—'}` },\n        { type: 'mrkdwn', text: `*Recommendation*\\n${screening.recommendation || '—'}` },\n        { type: 'mrkdwn', text: `*Draft id*\\n\\`${draftId || '(unknown)'}\\`` }\n      ]\n    },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    {\n      type: 'actions',\n      elements: [\n        { type: 'button', text: { type: 'plain_text', text: 'Open in dashboard' }, url: reviewUrl, style: 'primary' },\n        ...(exportUrl ? [{ type: 'button', text: { type: 'plain_text', text: 'Download .md' }, url: exportUrl }] : [])\n      ]\n    }\n  ]\n};\nreturn [{ json: payload }];"
+      }
+    },
+    {
+      "id": "7-post-slack",
+      "name": "POST to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Every 30 seconds":                { "main": [[{ "node": "Compute 'since' marker", "type": "main", "index": 0 }]] },
+    "Compute 'since' marker":          { "main": [[{ "node": "GET /draft_jobs (completed since)", "type": "main", "index": 0 }]] },
+    "GET /draft_jobs (completed since)": { "main": [[{ "node": "One item per job", "type": "main", "index": 0 }]] },
+    "One item per job":                { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
+    "GET /rfp/{id}":                   { "main": [[{ "node": "Format draft-ready Slack", "type": "main", "index": 0 }]] },
+    "Format draft-ready Slack":        { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
+  }
+}

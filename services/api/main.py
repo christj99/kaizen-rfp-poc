@@ -50,6 +50,7 @@ from .agents.discovery import (
 )
 from .agents.drafting import DraftingError, draft_proposal, export_draft_to_markdown
 from .agents.screening import screen_rfp
+from .config.loader import get_config
 from .db.client import (
     db_cursor,
     get_draft,
@@ -155,12 +156,102 @@ class HealthResponse(BaseModel):
     db: bool
 
 
+class OrchestrateRequest(BaseModel):
+    rfp_id: UUID
+    # Lets callers force a specific mode for a one-off run without editing
+    # config.yaml. Defaults to None which means "use whatever config.mode says".
+    mode_override: Optional[Literal["manual", "chain", "full_auto"]] = None
+
+
+class OrchestrateResponse(BaseModel):
+    rfp_id: UUID
+    mode: Literal["manual", "chain", "full_auto"]
+    steps_taken: List[str] = Field(default_factory=list)
+    screening: Optional[Screening] = None
+    draft_job_id: Optional[UUID] = None
+    notes: List[str] = Field(default_factory=list)
+
+
 # -- health ------------------------------------------------------------
 
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     db_ok = ping()
     return HealthResponse(status="ok" if db_ok else "degraded", db=db_ok)
+
+
+# -- orchestration (Phase 4 primary-plan Step 4.1) --------------------
+
+@app.post("/orchestrate", response_model=OrchestrateResponse)
+def orchestrate_endpoint(
+    body: OrchestrateRequest,
+    background_tasks: BackgroundTasks,
+) -> OrchestrateResponse:
+    """Run the configured mode's pipeline against an already-ingested RFP.
+
+    The discovery adapters land RFPs in the DB. n8n workflows then call
+    this endpoint per RFP so the same mode rules apply no matter where
+    the RFP came from (email, SAM.gov, manual upload, URL ingest).
+
+    * mode='manual'    → no auto-chaining; returns just the RFP
+    * mode='chain'     → runs screening synchronously
+    * mode='full_auto' → screening synchronously, then if score >=
+                         config.drafting.auto_draft_threshold, queues an
+                         async drafting job (BackgroundTasks). n8n's
+                         draft_completion_watcher workflow will fire the
+                         'draft ready' Slack notification when the job
+                         finishes.
+    """
+    rfp = get_rfp(body.rfp_id)
+    if not rfp:
+        raise HTTPException(status_code=404, detail="RFP not found")
+
+    cfg = get_config()
+    mode = body.mode_override or cfg.mode
+    resp = OrchestrateResponse(rfp_id=rfp.id, mode=mode)
+
+    if mode == "manual":
+        resp.steps_taken.append("returned_rfp_only")
+        return resp
+
+    # chain + full_auto both run screening synchronously.
+    try:
+        screening = screen_rfp(rfp)
+        resp.screening = screening
+        resp.steps_taken.append("screened")
+    except Exception as exc:  # noqa: BLE001
+        log.exception("Orchestrator screening failed for %s", body.rfp_id)
+        resp.notes.append(f"screening_failed: {type(exc).__name__}: {exc}")
+        return resp
+
+    if mode == "chain":
+        return resp
+
+    # full_auto — kick off async drafting only if the fit score clears
+    # the auto_draft_threshold. A recommendation of 'skip' also short-circuits.
+    threshold = cfg.drafting.auto_draft_threshold
+    score = screening.fit_score if screening.fit_score is not None else -1
+
+    if screening.recommendation == "skip":
+        resp.notes.append(f"auto_draft_skipped: recommendation=skip")
+        return resp
+
+    if score < threshold:
+        resp.notes.append(
+            f"auto_draft_skipped: fit_score={score} < threshold={threshold}"
+        )
+        return resp
+
+    job = DraftJob(rfp_id=body.rfp_id, status="queued")
+    insert_draft_job(job)
+    _audit_draft_job(job.id, body.rfp_id, "queued", mode="full_auto")
+    background_tasks.add_task(_run_draft_job, job.id, body.rfp_id)
+    resp.draft_job_id = job.id
+    resp.steps_taken.append("draft_queued")
+    resp.notes.append(
+        f"auto_drafting_queued: fit_score={score} >= threshold={threshold}"
+    )
+    return resp
 
 
 # -- RFP ingestion -----------------------------------------------------
@@ -426,6 +517,33 @@ def get_draft_job_endpoint(job_id: UUID) -> DraftJobStatusResponse:
         if result:
             draft, _meta = result
     return DraftJobStatusResponse(job=job, draft=draft)
+
+
+@app.get("/draft_jobs", response_model=List[DraftJob])
+def list_draft_jobs_endpoint(
+    status: Optional[DraftJobStatus] = None,
+    since: Optional[datetime] = None,
+    limit: int = 50,
+) -> List[DraftJob]:
+    """List draft jobs. The n8n draft_completion_watcher workflow uses
+    ``?status=completed&since=<last_tick>`` to find newly-finished jobs."""
+    sql = "SELECT * FROM draft_jobs"
+    clauses: List[str] = []
+    params: List[Any] = []
+    if status:
+        clauses.append("status = %s")
+        params.append(status)
+    if since:
+        clauses.append("completed_at > %s")
+        params.append(since)
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY completed_at DESC NULLS LAST, created_at DESC LIMIT %s"
+    params.append(limit)
+    from .db.client import _row_to_draft_job
+    with db_cursor() as cur:
+        cur.execute(sql, params)
+        return [_row_to_draft_job(r) for r in cur.fetchall()]
 
 
 @app.get("/draft/{draft_id}", response_model=Draft)
