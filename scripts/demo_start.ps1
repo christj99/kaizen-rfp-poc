@@ -15,9 +15,20 @@ Import-DotEnv
 $py = Get-VenvPython
 
 Write-Host "[demo] starting Docker services (Postgres + n8n)..." -ForegroundColor Cyan
+# `docker compose up -d` prints pull/start progress to stderr even on success.
+# Under $ErrorActionPreference='Stop' (set in _common.ps1), PowerShell 5.1
+# treats each native-stderr line as a terminating error and aborts the script
+# before uvicorn/streamlit start. Scope `Continue` narrowly so we still honor
+# exit codes below.
 Push-Location $RepoRoot
 try {
-    docker compose up -d
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        docker compose up -d 2>&1 | ForEach-Object { Write-Host $_ }
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
     if ($LASTEXITCODE -ne 0) { throw "docker compose up failed (exit $LASTEXITCODE)" }
 } finally {
     Pop-Location

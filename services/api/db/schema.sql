@@ -87,6 +87,23 @@ CREATE TABLE IF NOT EXISTS drafts (
 
 CREATE INDEX IF NOT EXISTS idx_drafts_rfp_id ON drafts (rfp_id);
 
+-- Phase 3B: async drafting job queue. FastAPI BackgroundTasks is the runner;
+-- this table is just the durable status/result store so pollers can check
+-- progress and the audit trail has a complete record.
+CREATE TABLE IF NOT EXISTS draft_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rfp_id UUID REFERENCES rfps(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,                       -- 'queued' | 'running' | 'completed' | 'failed'
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    draft_id UUID REFERENCES drafts(id) ON DELETE SET NULL,
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_draft_jobs_rfp_id ON draft_jobs (rfp_id);
+CREATE INDEX IF NOT EXISTS idx_draft_jobs_status_created ON draft_jobs (status, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     entity_type TEXT,

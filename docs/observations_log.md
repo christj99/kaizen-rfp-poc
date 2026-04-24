@@ -37,6 +37,38 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-24 — Postgres volume survived a Docker Desktop restart, but tables came up empty
+
+Mid-Phase-3B build, Docker Desktop's `com.docker.service` (the Windows
+service backing the daemon) stopped — every `docker` command hung. User
+restarted Docker Desktop. Afterward, the named volumes `kaizen_postgres_data`
+and `kaizen_n8n_data` still existed (`docker volume ls`), but `SELECT COUNT(*)`
+on every user-facing table returned 0. The Phase 1/2/3 smoke-test data
+(12 RFPs + 2 drafts + screenings) was wiped. Past-proposal data had to
+be re-indexed via `python -m services.api.rag.indexer`.
+
+**Hypothesis:** when containers are recreated against a "present but
+unreadable" volume, Postgres's entrypoint reruns `initdb` on the empty
+mount. Docker's volume pointer survived but its contents didn't. Possibly
+triggered by running `docker compose down` while the daemon was in a
+half-dead state.
+
+**Demo robustness implications:**
+- Do NOT run `docker compose down` + `up` cycles during the demo. It's
+  usually safe but apparently not always.
+- We should pre-seed the demo DB fresh just before the live demo, and
+  have a backup plan (Phase 7 supplemental says pre-seed the DB + backup
+  video). This incident reinforces that.
+- Worth adding a "restore from fixture" script that can rehydrate the
+  DB to a known demo state in one command.
+
+Separately surfaced: `scripts/demo_start.ps1` and `scripts/demo_stop.ps1`
+were halting mid-script because `docker compose`'s progress lines go to
+stderr, and `$ErrorActionPreference = 'Stop'` was turning those into
+script-terminating errors. Fixed by scoping `$ErrorActionPreference =
+'Continue'` narrowly around the two `docker compose` calls. Committed
+with the Phase 3B changes.
+
 ### 2026-04-23 — Drafting agent smoke runs (Phase 3 Checkpoint 3)
 
 Ran the drafting agent end-to-end on two RFPs already in the DB.

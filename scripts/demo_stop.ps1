@@ -24,9 +24,17 @@ Stop-PidFile (Join-Path $RepoRoot '.uvicorn.pid')   'FastAPI'
 Stop-PidFile (Join-Path $RepoRoot '.streamlit.pid') 'Streamlit'
 
 Write-Host "[demo] stopping Docker services..." -ForegroundColor Cyan
+# docker compose writes status lines to stderr even on success; silence the
+# stop-on-error scoping just for this call (see demo_start.ps1 for context).
 Push-Location $RepoRoot
 try {
-    docker compose down
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        docker compose down 2>&1 | ForEach-Object { Write-Host $_ }
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
 } finally {
     Pop-Location
 }

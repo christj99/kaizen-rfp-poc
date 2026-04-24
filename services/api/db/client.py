@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+from datetime import datetime
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
 from uuid import UUID
 
@@ -19,6 +20,7 @@ from pgvector.psycopg2 import register_vector
 from .. import _env  # noqa: F401 — populates os.environ from .env
 from ..models.audit import AuditEntry
 from ..models.draft import Draft, DraftContent, DraftSection
+from ..models.draft_job import DraftJob
 from ..models.past_proposal import PastProposal
 from ..models.rfp import RFP
 from ..models.screening import Screening
@@ -349,6 +351,83 @@ def latest_draft_for_rfp(rfp_id: UUID) -> Optional[Tuple[Draft, Dict[str, Any]]]
         )
         row = cur.fetchone()
         return _row_to_draft(row) if row else None
+
+
+# -- draft_jobs (Phase 3B async drafting) -----------------------------
+
+def insert_draft_job(job: DraftJob) -> DraftJob:
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO draft_jobs
+                (id, rfp_id, status, started_at, completed_at,
+                 draft_id, error_message, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                str(job.id),
+                str(job.rfp_id),
+                job.status,
+                job.started_at,
+                job.completed_at,
+                str(job.draft_id) if job.draft_id else None,
+                job.error_message,
+                job.created_at,
+            ),
+        )
+    return job
+
+
+def update_draft_job(
+    job_id: UUID,
+    *,
+    status: Optional[str] = None,
+    started_at: Optional[datetime] = None,
+    completed_at: Optional[datetime] = None,
+    draft_id: Optional[UUID] = None,
+    error_message: Optional[str] = None,
+) -> None:
+    """Patch a draft_jobs row. Only non-None kwargs are written."""
+    sets: List[str] = []
+    params: List[Any] = []
+    if status is not None:
+        sets.append("status = %s"); params.append(status)
+    if started_at is not None:
+        sets.append("started_at = %s"); params.append(started_at)
+    if completed_at is not None:
+        sets.append("completed_at = %s"); params.append(completed_at)
+    if draft_id is not None:
+        sets.append("draft_id = %s"); params.append(str(draft_id))
+    if error_message is not None:
+        sets.append("error_message = %s"); params.append(error_message)
+    if not sets:
+        return
+    params.append(str(job_id))
+    with db_cursor() as cur:
+        cur.execute(
+            f"UPDATE draft_jobs SET {', '.join(sets)} WHERE id = %s",
+            params,
+        )
+
+
+def _row_to_draft_job(row: psycopg2.extras.DictRow) -> DraftJob:
+    return DraftJob(
+        id=row["id"],
+        rfp_id=row["rfp_id"],
+        status=row["status"],
+        started_at=row["started_at"],
+        completed_at=row["completed_at"],
+        draft_id=row["draft_id"],
+        error_message=row["error_message"],
+        created_at=row["created_at"],
+    )
+
+
+def get_draft_job(job_id: UUID) -> Optional[DraftJob]:
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM draft_jobs WHERE id = %s", (str(job_id),))
+        row = cur.fetchone()
+        return _row_to_draft_job(row) if row else None
 
 
 # -- past_proposals + chunks ------------------------------------------

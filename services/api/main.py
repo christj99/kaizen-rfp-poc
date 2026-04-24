@@ -32,7 +32,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
-from fastapi import FastAPI, Form, HTTPException, UploadFile
+from datetime import datetime as _dt, timezone
+from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from . import _env  # noqa: F401 — populates os.environ from .env
@@ -52,14 +53,20 @@ from .agents.screening import screen_rfp
 from .db.client import (
     db_cursor,
     get_draft,
+    get_draft_job,
     get_rfp,
+    insert_draft_job,
     latest_draft_for_rfp,
     latest_screening_for_rfp,
     list_rfps,
     ping,
     set_screening_override,
+    update_draft_job,
+    write_audit,
 )
+from .models.audit import AuditEntry
 from .models.draft import Draft
+from .models.draft_job import DraftJob, DraftJobStatus
 from .models.rfp import RFP, RFPSourceType, RFPStatus
 from .models.screening import Recommendation, Screening
 from .rag.retriever import find_similar_proposals
@@ -282,17 +289,143 @@ def similar_proposals_endpoint(rfp_id: UUID, k: int = 3) -> List[SimilarProposal
     ]
 
 
-@app.post("/rfp/{rfp_id}/draft", response_model=Draft, status_code=201)
-def draft_rfp_endpoint(rfp_id: UUID) -> Draft:
-    """Generate a first-draft proposal via the drafting agent."""
+class DraftJobQueued(BaseModel):
+    """Response for ``POST /rfp/{id}/draft?mode=async``."""
+    job_id: UUID
+    rfp_id: UUID
+    status: Literal["queued"] = "queued"
+    estimated_duration_seconds: int = 300
+
+
+class DraftJobStatusResponse(BaseModel):
+    """Response for ``GET /draft/job/{id}``.
+
+    When ``job.status == 'completed'`` the ``draft`` field is populated so
+    pollers don't need a second call to ``/draft/{id}``.
+    """
+    job: DraftJob
+    draft: Optional[Draft] = None
+
+
+# Estimated duration surfaced to clients in the queued response. 300s matches
+# the observed 5-6 min drafting latency in smoke tests.
+_DRAFT_ESTIMATED_DURATION_S = 300
+
+
+def _audit_draft_job(job_id: UUID, rfp_id: UUID, action: str, **details: Any) -> None:
+    """Best-effort audit write. Failures here must never break the job path."""
+    try:
+        write_audit(
+            AuditEntry(
+                entity_type="draft_job",
+                entity_id=job_id,
+                action=action,
+                actor="system",
+                details={"rfp_id": str(rfp_id), **details},
+            )
+        )
+    except Exception:
+        log.exception("audit write failed for draft_job %s action=%s", job_id, action)
+
+
+def _run_draft_job(job_id: UUID, rfp_id: UUID) -> None:
+    """Background worker.
+
+    Intentionally avoids re-fetching the RFP until we've flipped the job to
+    'running', so that a missing RFP manifests as a clean failed-job state
+    rather than a silent stuck-in-queued.
+    """
+    now = _dt.now(timezone.utc)
+    update_draft_job(job_id, status="running", started_at=now)
+    _audit_draft_job(job_id, rfp_id, "running")
+
+    try:
+        rfp = get_rfp(rfp_id)
+        if rfp is None:
+            raise DraftingError(f"RFP {rfp_id} no longer exists")
+        draft = draft_proposal(rfp)
+        end = _dt.now(timezone.utc)
+        update_draft_job(
+            job_id,
+            status="completed",
+            completed_at=end,
+            draft_id=draft.id,
+        )
+        _audit_draft_job(
+            job_id, rfp_id, "completed",
+            draft_id=str(draft.id),
+            duration_seconds=(end - now).total_seconds(),
+        )
+    except Exception as exc:
+        end = _dt.now(timezone.utc)
+        msg = f"{type(exc).__name__}: {exc}"
+        log.exception("Draft job %s for rfp %s failed", job_id, rfp_id)
+        update_draft_job(
+            job_id,
+            status="failed",
+            completed_at=end,
+            error_message=msg[:2000],
+        )
+        _audit_draft_job(
+            job_id, rfp_id, "failed",
+            error_class=type(exc).__name__,
+            duration_seconds=(end - now).total_seconds(),
+        )
+
+
+@app.post(
+    "/rfp/{rfp_id}/draft",
+    response_model=None,                  # Union response, hand-serialized
+    status_code=201,
+)
+def draft_rfp_endpoint(
+    rfp_id: UUID,
+    background_tasks: BackgroundTasks,
+    mode: Literal["async", "sync"] = "async",
+):
+    """Generate a first-draft proposal.
+
+    ``mode=async`` (default): returns immediately with a ``DraftJobQueued``
+    payload and runs the drafting agent via ``BackgroundTasks``. Poll
+    ``GET /draft/job/{job_id}`` for progress and the completed draft.
+
+    ``mode=sync``: preserves the Phase 3 behavior (request blocks ~5 min,
+    returns the full ``Draft``). Kept as a deterministic demo safety net.
+    """
     rfp = get_rfp(rfp_id)
     if not rfp:
         raise HTTPException(status_code=404, detail="RFP not found")
-    try:
-        return draft_proposal(rfp)
-    except DraftingError as exc:
-        log.exception("Drafting failed for %s", rfp_id)
-        raise HTTPException(status_code=500, detail=str(exc))
+
+    if mode == "sync":
+        try:
+            return draft_proposal(rfp)
+        except DraftingError as exc:
+            log.exception("Synchronous drafting failed for %s", rfp_id)
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # async mode
+    job = DraftJob(rfp_id=rfp_id, status="queued")
+    insert_draft_job(job)
+    _audit_draft_job(job.id, rfp_id, "queued", mode="async")
+    background_tasks.add_task(_run_draft_job, job.id, rfp_id)
+    return DraftJobQueued(
+        job_id=job.id,
+        rfp_id=rfp_id,
+        estimated_duration_seconds=_DRAFT_ESTIMATED_DURATION_S,
+    )
+
+
+@app.get("/draft/job/{job_id}", response_model=DraftJobStatusResponse)
+def get_draft_job_endpoint(job_id: UUID) -> DraftJobStatusResponse:
+    job = get_draft_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Draft job not found")
+    draft: Optional[Draft] = None
+    if job.status == "completed" and job.draft_id:
+        result = get_draft(job.draft_id)
+        if result:
+            draft, _meta = result
+    return DraftJobStatusResponse(job=job, draft=draft)
 
 
 @app.get("/draft/{draft_id}", response_model=Draft)

@@ -12,6 +12,7 @@ from .draft import (
     DraftSectionProvenance,
     DraftStatus,
 )
+from .draft_job import DraftJob, DraftJobStatus
 from .past_proposal import PastProposal, ProposalOutcome
 from .rfp import RFP, RFPSourceType, RFPStatus, RawIngestionRecord
 from .screening import (
@@ -41,6 +42,8 @@ __all__ = [
     "Draft",
     "DraftContent",
     "DraftSection",
+    "DraftJob",
+    "DraftJobStatus",
     "DraftSectionProvenance",
     "DraftStatus",
     "EffortEstimate",
