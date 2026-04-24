@@ -18,6 +18,7 @@ from pgvector.psycopg2 import register_vector
 
 from .. import _env  # noqa: F401 — populates os.environ from .env
 from ..models.audit import AuditEntry
+from ..models.draft import Draft, DraftContent, DraftSection
 from ..models.past_proposal import PastProposal
 from ..models.rfp import RFP
 from ..models.screening import Screening
@@ -275,6 +276,79 @@ def set_screening_override(
             """,
             (override, reason, str(screening_id)),
         )
+
+
+# -- drafts -----------------------------------------------------------
+
+def insert_draft(
+    draft: Draft,
+    *,
+    overall_metadata: Optional[Dict[str, Any]] = None,
+) -> Draft:
+    """Persist a Draft. ``overall_metadata`` (from Claude's drafting call) is
+    stored inside ``drafts.content.meta`` so the export route can reproduce
+    the reviewer-facing provenance block later.
+    """
+    content_payload: Dict[str, Any] = draft.content.model_dump(mode="json")
+    if overall_metadata:
+        content_payload["meta"] = overall_metadata
+
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO drafts
+                (id, rfp_id, screening_id, content,
+                 retrieved_proposal_ids, status, created_at)
+            VALUES
+                (%s, %s, %s, %s::jsonb,
+                 %s::uuid[], %s, %s)
+            """,
+            (
+                str(draft.id),
+                str(draft.rfp_id),
+                str(draft.screening_id) if draft.screening_id else None,
+                json.dumps(content_payload, default=str),
+                [str(pid) for pid in draft.retrieved_proposal_ids],
+                draft.status,
+                draft.created_at,
+            ),
+        )
+    return draft
+
+
+def _row_to_draft(row: psycopg2.extras.DictRow) -> Tuple[Draft, Dict[str, Any]]:
+    raw = row["content"] or {}
+    # Pull the overall_metadata blob out so the DraftContent model stays clean.
+    overall_meta = raw.pop("meta", {}) if isinstance(raw, dict) else {}
+    content = DraftContent.model_validate(raw) if raw else DraftContent()
+    draft = Draft(
+        id=row["id"],
+        rfp_id=row["rfp_id"],
+        screening_id=row["screening_id"],
+        content=content,
+        retrieved_proposal_ids=list(row["retrieved_proposal_ids"]) if row["retrieved_proposal_ids"] else [],
+        status=row["status"],
+        created_at=row["created_at"],
+    )
+    return draft, overall_meta
+
+
+def get_draft(draft_id: UUID) -> Optional[Tuple[Draft, Dict[str, Any]]]:
+    """Return ``(draft, overall_metadata)`` or ``None``."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM drafts WHERE id = %s", (str(draft_id),))
+        row = cur.fetchone()
+        return _row_to_draft(row) if row else None
+
+
+def latest_draft_for_rfp(rfp_id: UUID) -> Optional[Tuple[Draft, Dict[str, Any]]]:
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM drafts WHERE rfp_id = %s ORDER BY created_at DESC LIMIT 1",
+            (str(rfp_id),),
+        )
+        row = cur.fetchone()
+        return _row_to_draft(row) if row else None
 
 
 # -- past_proposals + chunks ------------------------------------------

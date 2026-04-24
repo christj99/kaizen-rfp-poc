@@ -16,6 +16,7 @@ from .discovery import (
     run_adapter,
     run_discovery,
 )
+from .drafting import DraftingError, draft_proposal, export_draft_to_markdown
 from .screening import screen_rfp
 
 __all__ = [

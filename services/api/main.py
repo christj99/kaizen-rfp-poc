@@ -47,15 +47,19 @@ from .agents.discovery import (
     run_adapter,
     run_discovery,
 )
+from .agents.drafting import DraftingError, draft_proposal, export_draft_to_markdown
 from .agents.screening import screen_rfp
 from .db.client import (
     db_cursor,
+    get_draft,
     get_rfp,
+    latest_draft_for_rfp,
     latest_screening_for_rfp,
     list_rfps,
     ping,
     set_screening_override,
 )
+from .models.draft import Draft
 from .models.rfp import RFP, RFPSourceType, RFPStatus
 from .models.screening import Recommendation, Screening
 from .rag.retriever import find_similar_proposals
@@ -276,6 +280,46 @@ def similar_proposals_endpoint(rfp_id: UUID, k: int = 3) -> List[SimilarProposal
         )
         for r in results
     ]
+
+
+@app.post("/rfp/{rfp_id}/draft", response_model=Draft, status_code=201)
+def draft_rfp_endpoint(rfp_id: UUID) -> Draft:
+    """Generate a first-draft proposal via the drafting agent."""
+    rfp = get_rfp(rfp_id)
+    if not rfp:
+        raise HTTPException(status_code=404, detail="RFP not found")
+    try:
+        return draft_proposal(rfp)
+    except DraftingError as exc:
+        log.exception("Drafting failed for %s", rfp_id)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/draft/{draft_id}", response_model=Draft)
+def get_draft_endpoint(draft_id: UUID) -> Draft:
+    result = get_draft(draft_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    draft, _meta = result
+    return draft
+
+
+@app.get("/draft/{draft_id}/export")
+def export_draft_endpoint(draft_id: UUID):
+    from fastapi.responses import PlainTextResponse
+    result = get_draft(draft_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    draft, overall_meta = result
+    rfp = get_rfp(draft.rfp_id)
+    md = export_draft_to_markdown(draft, rfp=rfp, overall_metadata=overall_meta)
+    return PlainTextResponse(
+        content=md,
+        media_type="text/markdown",
+        headers={
+            "Content-Disposition": f'inline; filename="draft-{draft.id}.md"',
+        },
+    )
 
 
 @app.post("/rfp/{rfp_id}/override", status_code=204)

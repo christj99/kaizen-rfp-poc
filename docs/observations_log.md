@@ -37,6 +37,68 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-23 — Drafting agent smoke runs (Phase 3 Checkpoint 3)
+
+Ran the drafting agent end-to-end on two RFPs already in the DB.
+
+**DOC Cloud Services — screening said skip, drafting produced a no-bid response:**
+All 8 sections flagged for review with notes like "This is a no-bid letter
+rather than a proposal. The RFP is a Special Notice..." The agent correctly
+read the screening's skip verdict and pivoted to a no-bid response rather
+than producing a proposal Meridian wouldn't want to submit. Good
+behavioral alignment between screening and drafting — worth calling out in
+the demo as "the drafting agent respects the screening agent's verdict".
+
+**DHHS Benefits Warehouse (synthetic) — screening pursue, drafting produced a full proposal draft:**
+- 7432 words across 8 sections; 2 past proposals retrieved and cited as
+  `provenance.source_ids`
+- Per-section provenance correctly matched the template's
+  static/semi_static/dynamic classification
+- **Anti-hallucination behavior was excellent**:
+  - Pricing Narrative: confidence=0.30, "CRITICAL: framework only, pricing
+    team must populate specific rates"
+  - Staffing Plan: confidence=0.60, "CRITICAL: Must insert specific named
+    personnel with detailed resumes"
+  - Cover Letter: review-flagged for missing date + solicitation number
+- 6 of 8 sections flagged `human_review_required: true` with specific,
+  actionable notes. Overall confidence_summary: medium.
+
+**Demo implications:**
+- The dual run (no-bid vs. full draft) is a good story: the drafting agent
+  isn't just a template filler; it reads context from screening.
+- Per-section confidence grading is useful — reviewers can sort by
+  confidence ascending to know what to scrutinize.
+- Review notes are specific enough to turn into a checklist for the
+  proposal lead.
+
+**Open question for the demo narrative:** do we lead with the pursue case
+(showing rich draft quality) or the skip case (showing smart behavior)?
+The no-bid path is less expected and arguably more memorable, but the
+pursue path shows the craft.
+
+### 2026-04-23 — Drafting call latency
+
+Drafting takes **5-6 minutes per call** on a realistic RFP (DHHS Benefits
+Warehouse → 7432 words, ~5m 40s end-to-end). This is fine for a single-
+user demo or the Streamlit UI if we show a progress indicator, but:
+
+- `httpx` default 300s timeout was hit in smoke test — caller timed out
+  while the server finished in the background (persisted correctly).
+- For n8n workflows and the Streamlit UI, we'll want to either (a) bump
+  client timeouts to 600s, or (b) make drafting a background job with
+  polling, or (c) surface a "this will take a few minutes" state.
+- The max_tokens budget (16000) is the right size — no truncation seen.
+
+**Options for Phase 4/5 design discussion:**
+- Keep synchronous, widen timeouts everywhere (simplest, sufficient for
+  demo)
+- Move drafting behind a background task queue — proper solution but
+  larger lift
+- Add a `POST /rfp/{id}/draft?async=true` mode that returns a job_id
+  immediately and a `GET /draft/job/{id}` polling endpoint
+
+For the demo, widening timeouts is probably fine. Worth discussing.
+
 ### 2026-04-22/23 — Synthetic DHHS Benefits Warehouse (manual ingest)
 
 Pre-screening test RFP I constructed to validate the pipeline end-to-end.
