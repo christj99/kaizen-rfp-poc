@@ -35,7 +35,13 @@ for _stream in (sys.stdout, sys.stderr):
 
 # Workflows to flip to active=true when --activate is passed. Test harnesses
 # (chain_mode, full_auto_mode, slack_notification) stay inactive by design.
-DEFAULT_ACTIVE = {"Discovery — Email (primary)", "Draft completion watcher"}
+# The ingest sub-workflow MUST be active — its production webhook URL is
+# what discovery_email / discovery_sam_gov call for the 📥 ingest card.
+DEFAULT_ACTIVE = {
+    "Discovery — Email (primary)",
+    "Draft completion watcher",
+    "Slack ingest notification (sub-workflow)",
+}
 
 ALLOWED_TOP_LEVEL_KEYS = {"name", "nodes", "connections", "settings"}
 ALLOWED_SETTINGS_KEYS = {"executionOrder"}

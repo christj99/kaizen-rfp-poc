@@ -144,18 +144,38 @@ DEFAULT_CONFIG_PATH: Path = Path(__file__).resolve().parents[3] / "config" / "co
 _lock = RLock()
 _cached: Optional[AppConfig] = None
 _cached_path: Optional[Path] = None
+_cached_mtime: Optional[float] = None
 
 
 def load_config(path: Optional[Path] = None, *, force_reload: bool = False) -> AppConfig:
-    """Return the parsed config, caching the first successful read."""
-    global _cached, _cached_path
+    """Return the parsed config, caching the first successful read.
+
+    Auto-reloads when the source file's mtime changes since the last
+    successful parse — so `config.mode` edits take effect on the next
+    ``get_config()`` call without an API restart. The Settings page can
+    still call ``reload_config()`` explicitly for belt-and-suspenders.
+    """
+    global _cached, _cached_path, _cached_mtime
     target = (path or DEFAULT_CONFIG_PATH).resolve()
+    try:
+        current_mtime = target.stat().st_mtime
+    except OSError:
+        current_mtime = None
+
     with _lock:
-        if not force_reload and _cached is not None and _cached_path == target:
-            return _cached
+        cache_valid = (
+            not force_reload
+            and _cached is not None
+            and _cached_path == target
+            and _cached_mtime == current_mtime
+        )
+        if cache_valid:
+            return _cached  # type: ignore[return-value]
+
         raw = yaml.safe_load(target.read_text(encoding="utf-8")) or {}
         _cached = AppConfig.model_validate(raw)
         _cached_path = target
+        _cached_mtime = current_mtime
         return _cached
 
 

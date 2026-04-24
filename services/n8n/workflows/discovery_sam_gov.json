@@ -44,6 +44,23 @@
       }
     },
     {
+      "id": "3b-ingest-notify",
+      "name": "Ingest-card sub-workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 450],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/kaizen/ingest-notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"rfp_id\": \"{{ $json.rfp_id }}\" }",
+        "options": { "timeout": 20000 },
+        "continueOnFail": true
+      },
+      "notes": "Fires the 📥 card regardless of config.mode — ingestion visibility for manual-mode teams."
+    },
+    {
       "id": "4-orchestrate",
       "name": "POST /orchestrate",
       "type": "n8n-nodes-base.httpRequest",
@@ -119,7 +136,12 @@
   "connections": {
     "Every 4 hours (manual during dev)": { "main": [[{ "node": "Poll sam_gov_primary", "type": "main", "index": 0 }]] },
     "Poll sam_gov_primary":               { "main": [[{ "node": "Expand new_rfp_ids", "type": "main", "index": 0 }]] },
-    "Expand new_rfp_ids":                 { "main": [[{ "node": "POST /orchestrate", "type": "main", "index": 0 }]] },
+    "Expand new_rfp_ids":                 {
+      "main": [[
+        { "node": "Ingest-card sub-workflow", "type": "main", "index": 0 },
+        { "node": "POST /orchestrate", "type": "main", "index": 0 }
+      ]]
+    },
     "POST /orchestrate":                  { "main": [[{ "node": "Fit ≥ threshold?", "type": "main", "index": 0 }]] },
     "Fit ≥ threshold?":                   { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }], []] },
     "GET /rfp/{id}":                      { "main": [[{ "node": "Format Block Kit", "type": "main", "index": 0 }]] },

@@ -1,0 +1,66 @@
+{
+  "name": "Slack ingest notification (sub-workflow)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "1-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "kaizen-ingest-notify",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kaizen/ingest-notify",
+        "responseMode": "lastNode"
+      },
+      "notes": "Called by discovery_email.json and discovery_sam_gov.json after every successful ingest (regardless of mode). Produces the '📥 New RFP ingested' Slack card so manual-mode doesn't look like a dead pipeline.\n\nRequest:\n  POST http://localhost:5678/webhook/kaizen/ingest-notify\n  { \"rfp_id\": \"<uuid>\" }"
+    },
+    {
+      "id": "2-fetch-rfp",
+      "name": "GET /rfp/{id}",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KAIZEN_API_URL }}/rfp/{{ $json.body.rfp_id }}",
+        "options": { "timeout": 20000 }
+      }
+    },
+    {
+      "id": "3-format",
+      "name": "Format ingest card",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "parameters": {
+        "jsCode": "const ctx = $json;\nconst rfp = ctx.rfp || {};\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\n\nlet sourceLabel = sourceType;\nlet sourceDetail = '';\nif (sourceType === 'email') {\n  sourceLabel = 'Email';\n  sourceDetail = meta.from || '(unknown sender)';\n} else if (sourceType === 'sam_gov') {\n  sourceLabel = 'SAM.gov';\n  sourceDetail = meta.notice_id || rfp.external_id || '(no notice id)';\n} else if (sourceType === 'manual_upload') {\n  sourceLabel = 'Manual upload';\n  sourceDetail = meta.filename || '(no filename)';\n} else if (sourceType === 'url_ingest') {\n  sourceLabel = 'URL';\n  sourceDetail = meta.url || rfp.source_url || '';\n}\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = `${uiUrl}/?rfp=${rfp.id}`;\n\nconst payload = {\n  text: `:inbox_tray: New RFP ingested: ${rfp.title || '(no title)'}`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `:inbox_tray: New RFP ingested: ${rfp.title || '(no title)'}`.slice(0, 150), emoji: true } },\n    { type: 'section', fields: [\n      { type: 'mrkdwn', text: `*Source type*\\n${sourceLabel}` },\n      { type: 'mrkdwn', text: `*Source details*\\n${sourceDetail}` },\n      { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n      { type: 'mrkdwn', text: `*Ingested at*\\n${received}` }\n    ] },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: '_No screening has run yet. A screening card will follow shortly if `config.mode` is `chain` or `full_auto`._' }] },\n    { type: 'actions', elements: [\n      { type: 'button', text: { type: 'plain_text', text: 'Review in dashboard' }, url: reviewUrl, style: 'primary' }\n    ] }\n  ]\n};\nreturn [{ json: payload }];"
+      }
+    },
+    {
+      "id": "4-post-slack",
+      "name": "POST to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook":             { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
+    "GET /rfp/{id}":       { "main": [[{ "node": "Format ingest card", "type": "main", "index": 0 }]] },
+    "Format ingest card":  { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
+  }
+}

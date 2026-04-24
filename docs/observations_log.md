@@ -37,6 +37,47 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-24 — Slack notification threshold lowered from 75 → 50
+
+Maybe-scored RFPs (fit 50–74) tend to surface the strongest *emergent*
+reasoning from the screening agent — temporal-incoherence catches (e.g.
+"RFP appears to be from 2021 with response deadline of June 28, 2021, but
+current date is April 24, 2026"), document-type inference (Special Notice
+vs. solicitation), and nuanced deal-breaker identification. At threshold
+75 those signals were hidden in the dashboard; at 50 they land in Slack.
+
+For the POC demo and production teams in initial rollout we want these
+notifications on. Teams with higher volume may later raise this to 60–75
+to reduce notification load once they trust the agent's calibration. The
+threshold is a config value (`slack.notification_threshold`), not
+hardcoded — adjustable without code changes.
+
+### 2026-04-24 — Manual-mode ingestion visibility
+
+Under `mode: manual` RFPs ingest silently: DB entry, one `discovery_ingest`
+audit row, no Slack signal until a human triggers screening. During
+demonstration or for teams just rolling this out, that looks like a dead
+pipeline even when it's working correctly.
+
+Added a "📥 New RFP ingested" Slack card that fires regardless of mode,
+implemented as a shared webhook-triggered sub-workflow
+(`services/n8n/workflows/slack_ingest_notification.json`) that
+`discovery_email.json` and `discovery_sam_gov.json` both call in parallel
+with the screening path. In chain/full_auto mode you'll see two cards per
+RFP — the first says "something landed," the second says "here's what we
+think about it." That's intentional: ingest visibility is separate from
+screening visibility.
+
+### 2026-04-24 — Config hot-reload on mtime
+
+`services/api/config/loader.py` now stats the config file on every
+`get_config()` call and reloads when mtime changes. Effect: `config.mode`
+edits (and everything else in config.yaml) take effect on the next API
+call without a uvicorn restart — so the demo-time mode flip between
+`manual` / `chain` / `full_auto` is a visible operational-maturity moment
+rather than a "give me 30 seconds while I restart the backend." Thread-
+safe via the existing RLock.
+
 ### 2026-04-24 — Postgres volume survived a Docker Desktop restart, but tables came up empty
 
 Mid-Phase-3B build, Docker Desktop's `com.docker.service` (the Windows
