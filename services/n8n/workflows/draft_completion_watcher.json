@@ -51,18 +51,6 @@
       }
     },
     {
-      "id": "4-split",
-      "name": "One item per job",
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [900, 300],
-      "parameters": {
-        "fieldToSplitOut": "data",
-        "include": "allOtherFields"
-      },
-      "notes": "httpRequest wraps the array response under .data when the response is a JSON array — splits out individual job objects."
-    },
-    {
       "id": "4b-filter",
       "name": "Filter unsent",
       "type": "n8n-nodes-base.code",
@@ -113,8 +101,7 @@
   "connections": {
     "Every 30 seconds":                { "main": [[{ "node": "Compute 'since' marker", "type": "main", "index": 0 }]] },
     "Compute 'since' marker":          { "main": [[{ "node": "GET /draft_jobs (completed since)", "type": "main", "index": 0 }]] },
-    "GET /draft_jobs (completed since)": { "main": [[{ "node": "One item per job", "type": "main", "index": 0 }]] },
-    "One item per job":                { "main": [[{ "node": "Filter unsent", "type": "main", "index": 0 }]] },
+    "GET /draft_jobs (completed since)": { "main": [[{ "node": "Filter unsent", "type": "main", "index": 0 }]] },
     "Filter unsent":                   { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
     "GET /rfp/{id}":                   { "main": [[{ "node": "Format draft-ready Slack", "type": "main", "index": 0 }]] },
     "Format draft-ready Slack":        { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
