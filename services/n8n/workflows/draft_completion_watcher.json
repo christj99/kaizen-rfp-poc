@@ -27,7 +27,7 @@
       "typeVersion": 2,
       "position": [460, 300],
       "parameters": {
-        "jsCode": "// Use n8n workflow static data to remember the last tick. On first run,\n// default to 'now - 5 minutes' so we don't replay ancient completions.\nconst staticData = $getWorkflowStaticData('global');\nconst last = staticData.lastCheckIso;\nconst since = last || new Date(Date.now() - 5 * 60 * 1000).toISOString();\nconst now = new Date().toISOString();\nstaticData.lastCheckIso = now;\nreturn [{ json: { since, now } }];"
+        "jsCode": "// Look back a wide window every run (15 min). Per-job dedupe happens in\n// the 'Filter unsent' node downstream — so widening the window doesn't\n// produce duplicate Slack cards. This avoids the race where a job's\n// completed_at lands between two watcher ticks and slides off the\n// since-marker forever.\nconst since = new Date(Date.now() - 15 * 60 * 1000).toISOString();\nreturn [{ json: { since } }];"
       }
     },
     {
@@ -61,6 +61,16 @@
         "include": "allOtherFields"
       },
       "notes": "httpRequest wraps the array response under .data when the response is a JSON array — splits out individual job objects."
+    },
+    {
+      "id": "4b-filter",
+      "name": "Filter unsent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1010, 300],
+      "parameters": {
+        "jsCode": "// Per-job dedupe: each completed-job notification fires exactly once per\n// job_id. We track notified IDs in workflow staticData with TTL pruning so\n// memory stays bounded.\nconst staticData = $getWorkflowStaticData('global');\nconst notified = staticData.notifiedJobIds || {};   // { job_id: notified_iso }\nconst TTL_HOURS = 6;\nconst cutoff = Date.now() - TTL_HOURS * 60 * 60 * 1000;\n\n// Prune anything older than TTL — keeps the dedupe set small.\nfor (const k of Object.keys(notified)) {\n  if (new Date(notified[k]).getTime() < cutoff) delete notified[k];\n}\n\nconst out = [];\nfor (const item of items) {\n  const job = item.json || {};\n  const jobId = job.id;\n  if (!jobId) continue;\n  if (notified[jobId]) continue;        // already sent\n  notified[jobId] = new Date().toISOString();\n  out.push({ json: job });\n}\n\nstaticData.notifiedJobIds = notified;\nreturn out;"
+      }
     },
     {
       "id": "5-fetch-context",
@@ -104,7 +114,8 @@
     "Every 30 seconds":                { "main": [[{ "node": "Compute 'since' marker", "type": "main", "index": 0 }]] },
     "Compute 'since' marker":          { "main": [[{ "node": "GET /draft_jobs (completed since)", "type": "main", "index": 0 }]] },
     "GET /draft_jobs (completed since)": { "main": [[{ "node": "One item per job", "type": "main", "index": 0 }]] },
-    "One item per job":                { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
+    "One item per job":                { "main": [[{ "node": "Filter unsent", "type": "main", "index": 0 }]] },
+    "Filter unsent":                   { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
     "GET /rfp/{id}":                   { "main": [[{ "node": "Format draft-ready Slack", "type": "main", "index": 0 }]] },
     "Format draft-ready Slack":        { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
   }

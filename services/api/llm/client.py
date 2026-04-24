@@ -175,27 +175,39 @@ class LLMClient:
         temperature: float,
         max_retries: int = 4,
     ) -> Tuple[str, Dict[str, Optional[int]]]:
+        """Call Claude with retry on transient errors.
+
+        Always uses the streaming API (``messages.stream``). Two reasons:
+        1. The non-streaming endpoint refuses requests whose ``max_tokens``
+           could push the call past Anthropic's 10-minute non-streaming
+           timeout — drafting at ``max_tokens=32000`` is well over that
+           ceiling. Streaming is the supported path for long generations.
+        2. Streaming costs us nothing structurally; we still wait for the
+           full response via ``get_final_message()``. Same final text +
+           usage, no plumbing change downstream.
+        """
         assert self._client is not None, "LLMClient in mock mode has no Anthropic client"
 
         backoff = 1.0
         last_exc: Optional[BaseException] = None
         for attempt in range(1, max_retries + 1):
             try:
-                resp = self._client.messages.create(
+                with self._client.messages.stream(
                     model=model,
                     max_tokens=max_tokens,
                     temperature=temperature,
                     system=system,
                     messages=[{"role": "user", "content": user_prompt}],
-                )
+                ) as stream:
+                    final = stream.get_final_message()
                 text = "".join(
                     block.text
-                    for block in resp.content
+                    for block in final.content
                     if getattr(block, "type", None) == "text"
                 )
                 usage = {
-                    "input_tokens": getattr(resp.usage, "input_tokens", None),
-                    "output_tokens": getattr(resp.usage, "output_tokens", None),
+                    "input_tokens": getattr(final.usage, "input_tokens", None),
+                    "output_tokens": getattr(final.usage, "output_tokens", None),
                 }
                 return text, usage
             except _TRANSIENT_ERRORS as exc:
