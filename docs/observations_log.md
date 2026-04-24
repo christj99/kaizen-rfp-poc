@@ -37,6 +37,43 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-24 — Phase 4 retrospective (themes for content/demo)
+
+**Calibration decisions made empirically, not theoretically:**
+- Slack notification threshold 75 → 50. Maybe-band screenings (50-74) are
+  where the agent's emergent reasoning is most striking; gating Slack at
+  75 hid them.
+- auto_draft_threshold 90 → 80. At 90 full_auto silently no-op'd on
+  every realistic pursue. 80 matches the plan's "obvious pursue" band.
+- mode default = manual. Honest deployment story; hot-reload makes the
+  live mode-flip a low-cost demo moment.
+
+**Live-only failure modes that wouldn't have shown on synthetic data:**
+- Anthropic SDK refuses non-streaming requests when max_tokens could
+  push the call past 10 min. Streaming is the right default for every
+  call.
+- Drafting at max_tokens=16000 truncates mid-section on substantive
+  RFPs. 32000 is comfortable; Sonnet 4.5 ceiling is 64000.
+- Three n8n data-shape bugs in one workflow (sliding since-marker
+  race, splitOut on a non-existent .data field, draft_id source
+  confusion in the format node). All only visible from actual runData
+  on a real execution. Lesson: never trust assumed shape; verify.
+
+**Demo-side observations worth keeping:**
+- The drafting agent reads the screening verdict and produces a
+  no-bid response when screening is skip, a real proposal when it's
+  pursue. Emergent from the prompt design, not coded — strong
+  narrative.
+- The 📥 ingest card matters more than expected. Without it manual
+  mode reads as a dead pipeline.
+- Failed draft jobs are silent — no Slack card on status='failed'.
+  Worth a follow-up "draft failed" notification to avoid invisible
+  failure during the demo.
+- Full pipeline timing for a clear-pursue full_auto run: ingest
+  card ~1-2 min, screening card ~3-4 min, draft-ready card ~8-10 min.
+  Cron interval (2 min) + screening (~80s) + drafting (~5 min) +
+  watcher tick (30s) account for almost all of it.
+
 ### 2026-04-24 — Drafting max_tokens bumped 16000 → 32000
 
 Live full_auto run on a real Treasury / Fiscal Service "Cloud Data
