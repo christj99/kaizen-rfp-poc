@@ -14,8 +14,8 @@ from typing import Any, Dict, List
 
 import streamlit as st
 
-from .. import api_client
-from ..components import api_health_banner, empty_state, section_divider
+import api_client
+from components import api_health_banner, empty_state, section_divider
 
 
 def render() -> None:

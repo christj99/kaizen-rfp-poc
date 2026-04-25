@@ -15,8 +15,8 @@ from typing import List
 
 import streamlit as st
 
-from .. import api_client
-from ..components import api_health_banner
+import api_client
+from components import api_health_banner
 
 
 _HISTORY_KEY = "chat_history"

@@ -6,7 +6,7 @@ from typing import Iterable, Tuple
 
 import streamlit as st
 
-from .. import api_client
+import api_client
 
 
 def api_health_banner() -> bool:

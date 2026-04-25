@@ -1,14 +1,24 @@
 """Streamlit entrypoint — Kaizen RFP POC dashboard.
 
-Multi-page app via ``st.navigation``. Each page module under ``pages/``
-is a callable that draws itself; nothing outside this file calls
-Streamlit setup helpers, which keeps page modules importable in
-isolation for testing.
+Multi-page app via ``st.navigation``. Each page module under ``screens/``
+is a callable that draws itself.
+
+Streamlit runs this file as a script (``streamlit run services/ui/app.py``),
+not as a Python package, so we insert the script's directory into ``sys.path``
+before any sibling imports. ``screens/`` is deliberately NOT named ``pages/``
+because Streamlit auto-discovers a sibling ``pages/`` directory and would
+override the navigation defined here.
 """
 
 from __future__ import annotations
 
-import streamlit as st
+import sys
+from pathlib import Path
+
+# Make `api_client`, `components`, `screens` importable as bare names.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import streamlit as st  # noqa: E402
 
 st.set_page_config(
     page_title="Kaizen RFP POC",
@@ -18,14 +28,14 @@ st.set_page_config(
 )
 
 # ----- pages -----
-from .pages import dashboard as page_dashboard          # noqa: E402
-from .pages import rfp_detail as page_rfp_detail        # noqa: E402
-from .pages import past_proposals as page_past_proposals  # noqa: E402
-from .pages import rubric_editor as page_rubric_editor  # noqa: E402
-from .pages import settings as page_settings            # noqa: E402
-from .pages import chat as page_chat                    # noqa: E402
+from screens import dashboard as page_dashboard            # noqa: E402
+from screens import rfp_detail as page_rfp_detail          # noqa: E402
+from screens import past_proposals as page_past_proposals  # noqa: E402
+from screens import rubric_editor as page_rubric_editor    # noqa: E402
+from screens import settings as page_settings              # noqa: E402
+from screens import chat as page_chat                      # noqa: E402
 
-# Header inside the sidebar — sits above the auto-generated nav.
+# Sidebar header sits above the auto-generated nav.
 with st.sidebar:
     st.markdown(
         "<div style='padding:0.5rem 0 0.75rem 0;'>"

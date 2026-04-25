@@ -21,8 +21,8 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from .. import api_client
-from ..components import (
+import api_client
+from components import (
     api_health_banner,
     empty_state,
     fit_score_badge,

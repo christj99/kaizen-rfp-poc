@@ -14,8 +14,8 @@ from typing import Any, Dict
 
 import streamlit as st
 
-from .. import api_client
-from ..components import (
+import api_client
+from components import (
     api_health_banner,
     empty_state,
     section_divider,

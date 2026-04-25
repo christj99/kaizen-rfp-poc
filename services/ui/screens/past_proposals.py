@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from .. import api_client
-from ..components import api_health_banner, empty_state, section_divider
+import api_client
+from components import api_health_banner, empty_state, section_divider
 
 
 def _format_value(pp: Dict[str, Any]) -> str:

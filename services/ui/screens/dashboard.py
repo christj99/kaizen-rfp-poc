@@ -14,11 +14,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
-import pandas as pd
 import streamlit as st
 
-from .. import api_client
-from ..components import (
+import api_client
+from components import (
     api_health_banner,
     empty_state,
     fit_score_badge,
