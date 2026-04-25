@@ -67,7 +67,7 @@ def _pick_rfp(rfps: List[Dict[str, Any]]) -> Optional[str]:
         empty_state(
             "No RFPs ingested yet.",
             "Send an email to the demo inbox or use the Dashboard's Ingest tab to add one.",
-            icon=":material/inbox:",
+            icon="📥",
         )
         return None
     labels = {
@@ -138,7 +138,7 @@ def render() -> None:
     if not screening:
         col1, col2 = st.columns([1, 2])
         with col1:
-            empty_state("Not screened yet.", "", icon=":material/pending:")
+            empty_state("Not screened yet.", "", icon="⏳")
         with col2:
             if st.button("Screen now", type="primary"):
                 with st.spinner("Calling Claude — typically 60-120s"):
@@ -373,7 +373,7 @@ def render() -> None:
                 f"<a href='{export_url}' target='_blank' style='display:inline-block;"
                 f"padding:0.4rem 0.8rem;background:#0F766E;color:#fff;border-radius:6px;"
                 f"text-decoration:none;font-size:0.9rem;font-weight:600;'>"
-                f":material/download: Export Markdown</a>",
+                f"⬇ Export Markdown</a>",
                 unsafe_allow_html=True,
             )
 

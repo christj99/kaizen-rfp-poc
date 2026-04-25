@@ -30,7 +30,7 @@ def render() -> None:
         return
 
     if not rubric:
-        empty_state("Rubric is empty.", icon=":material/tune:")
+        empty_state("Rubric is empty.", icon="🎚")
         return
 
     # Header

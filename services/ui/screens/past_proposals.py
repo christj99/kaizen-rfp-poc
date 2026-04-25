@@ -43,7 +43,7 @@ def render() -> None:
         empty_state(
             "No past proposals found.",
             "Re-index via `python -m services.api.rag.indexer` if the corpus looks empty.",
-            icon=":material/folder_off:",
+            icon="📁",
         )
         return
 
@@ -91,7 +91,7 @@ def render() -> None:
 
         sections = pp.get("sections") or {}
         if not sections:
-            empty_state("No sections parsed for this proposal.", icon=":material/description:")
+            empty_state("No sections parsed for this proposal.", icon="📄")
             return
 
         # Highlight LESSONS LEARNED prominently for lost proposals.

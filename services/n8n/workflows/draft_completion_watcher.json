@@ -27,12 +27,12 @@
       "typeVersion": 2,
       "position": [460, 300],
       "parameters": {
-        "jsCode": "// Look back a wide window every run (15 min). Per-job dedupe happens in\n// the 'Filter unsent' node downstream — so widening the window doesn't\n// produce duplicate Slack cards. This avoids the race where a job's\n// completed_at lands between two watcher ticks and slides off the\n// since-marker forever.\nconst since = new Date(Date.now() - 15 * 60 * 1000).toISOString();\nreturn [{ json: { since } }];"
+        "jsCode": "// Look back a wide window every run (15 min). Per-job dedupe happens in\n// 'Filter terminal + unsent' downstream — widening the window can't\n// produce duplicate Slack cards. This avoids the race where a job's\n// completed_at lands between two watcher ticks and slides off the\n// since-marker forever.\nconst since = new Date(Date.now() - 15 * 60 * 1000).toISOString();\nreturn [{ json: { since } }];"
       }
     },
     {
       "id": "3-list-jobs",
-      "name": "GET /draft_jobs (completed since)",
+      "name": "GET /draft_jobs (recent terminal)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [680, 300],
@@ -42,22 +42,22 @@
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            { "name": "status", "value": "completed" },
             { "name": "since", "value": "={{ $json.since }}" },
             { "name": "limit", "value": "50" }
           ]
         },
         "options": { "timeout": 30000 }
-      }
+      },
+      "notes": "No status filter — we fetch all recent jobs and filter to terminal states (completed | failed) downstream so a single dedupe map covers both Slack-card paths."
     },
     {
-      "id": "4b-filter",
-      "name": "Filter unsent",
+      "id": "4-filter",
+      "name": "Filter terminal + unsent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1010, 300],
+      "position": [900, 300],
       "parameters": {
-        "jsCode": "// Per-job dedupe: each completed-job notification fires exactly once per\n// job_id. We track notified IDs in workflow staticData with TTL pruning so\n// memory stays bounded.\nconst staticData = $getWorkflowStaticData('global');\nconst notified = staticData.notifiedJobIds || {};   // { job_id: notified_iso }\nconst TTL_HOURS = 6;\nconst cutoff = Date.now() - TTL_HOURS * 60 * 60 * 1000;\n\n// Prune anything older than TTL — keeps the dedupe set small.\nfor (const k of Object.keys(notified)) {\n  if (new Date(notified[k]).getTime() < cutoff) delete notified[k];\n}\n\nconst out = [];\nfor (const item of items) {\n  const job = item.json || {};\n  const jobId = job.id;\n  if (!jobId) continue;\n  if (notified[jobId]) continue;        // already sent\n  notified[jobId] = new Date().toISOString();\n  out.push({ json: job });\n}\n\nstaticData.notifiedJobIds = notified;\nreturn out;"
+        "jsCode": "// Per-job dedupe: each terminal-state notification fires exactly once\n// per job_id. Tracks notified IDs in workflow staticData with TTL\n// pruning to keep memory bounded.\nconst staticData = $getWorkflowStaticData('global');\nconst notified = staticData.notifiedJobIds || {};   // { job_id: notified_iso }\nconst TTL_HOURS = 6;\nconst cutoff = Date.now() - TTL_HOURS * 60 * 60 * 1000;\n\nfor (const k of Object.keys(notified)) {\n  if (new Date(notified[k]).getTime() < cutoff) delete notified[k];\n}\n\nconst out = [];\nfor (const item of items) {\n  const job = item.json || {};\n  if (!job || !job.id) continue;\n  if (job.status !== 'completed' && job.status !== 'failed') continue;  // skip queued/running\n  if (notified[job.id]) continue;\n  notified[job.id] = new Date().toISOString();\n  out.push({ json: job });\n}\n\nstaticData.notifiedJobIds = notified;\nreturn out;"
       }
     },
     {
@@ -73,21 +73,52 @@
       }
     },
     {
-      "id": "6-format",
+      "id": "6-branch",
+      "name": "Completed or failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1340, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Filter terminal + unsent').item.json.status }}",
+              "rightValue": "completed",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "notes": "True branch -> 'Format draft-ready', false branch -> 'Format draft-failed'."
+    },
+    {
+      "id": "7a-format-ok",
       "name": "Format draft-ready Slack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1340, 300],
+      "position": [1560, 200],
       "parameters": {
-        "jsCode": "// $json here is the GET /rfp/{id} response (rfp + screening). To get\n// the original draft_jobs row (with draft_id) we walk back to the\n// 'Filter unsent' node via $().item — n8n's pairedItem chain keeps\n// the row the current item descended from.\nconst ctx = $json;\nconst rfp = ctx.rfp || {};\nconst screening = ctx.screening || {};\nconst job = $('Filter unsent').item.json;\nconst draftId = job && job.draft_id;\n\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst sender = meta.from || meta.notice_id || meta.filename || meta.url || '';\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = sourceType === 'email'\n  ? `Source: email from ${sender} (received ${received})`\n  : sourceType === 'sam_gov'\n    ? `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || ''} (received ${received})`\n    : `Source: ${sourceType} ${sender} (received ${received})`;\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = draftId ? `${uiUrl}/?draft=${draftId}` : `${uiUrl}/?rfp=${rfp.id}`;\n// Use a host-accessible URL for the .md button — KAIZEN_API_URL points at\n// host.docker.internal which only resolves from inside the n8n container,\n// not from the user's browser. Hard-wire localhost for the click target.\nconst exportUrl = draftId ? `http://localhost:8000/draft/${draftId}/export` : null;\n\nconst payload = {\n  text: `:memo: Draft ready — ${rfp.title || '(no title)'}`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `:memo: Draft ready — ${rfp.title || '(no title)'}`.slice(0, 150), emoji: true } },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n        { type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score ?? '—'}` },\n        { type: 'mrkdwn', text: `*Recommendation*\\n${screening.recommendation || '—'}` },\n        { type: 'mrkdwn', text: `*Draft id*\\n\\`${draftId || '(unknown)'}\\`` }\n      ]\n    },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    {\n      type: 'actions',\n      elements: [\n        { type: 'button', text: { type: 'plain_text', text: 'Open in dashboard' }, url: reviewUrl, style: 'primary' },\n        ...(exportUrl ? [{ type: 'button', text: { type: 'plain_text', text: 'Download .md' }, url: exportUrl }] : [])\n      ]\n    }\n  ]\n};\nreturn [{ json: payload }];"
+        "jsCode": "const ctx = $json;\nconst rfp = ctx.rfp || {};\nconst screening = ctx.screening || {};\nconst job = $('Filter terminal + unsent').item.json;\nconst draftId = job && job.draft_id;\n\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst sender = meta.from || meta.notice_id || meta.filename || meta.url || '';\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = sourceType === 'email'\n  ? `Source: email from ${sender} (received ${received})`\n  : sourceType === 'sam_gov'\n    ? `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || ''} (received ${received})`\n    : `Source: ${sourceType} ${sender} (received ${received})`;\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst reviewUrl = draftId ? `${uiUrl}/?draft=${draftId}` : `${uiUrl}/?rfp=${rfp.id}`;\nconst exportUrl = draftId ? `http://localhost:8000/draft/${draftId}/export` : null;\n\nconst payload = {\n  text: `:memo: Draft ready — ${rfp.title || '(no title)'}`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `:memo: Draft ready — ${rfp.title || '(no title)'}`.slice(0, 150), emoji: true } },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n        { type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score ?? '—'}` },\n        { type: 'mrkdwn', text: `*Recommendation*\\n${screening.recommendation || '—'}` },\n        { type: 'mrkdwn', text: `*Draft id*\\n\\`${draftId || '(unknown)'}\\`` }\n      ]\n    },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    {\n      type: 'actions',\n      elements: [\n        { type: 'button', text: { type: 'plain_text', text: 'Open in dashboard' }, url: reviewUrl, style: 'primary' },\n        ...(exportUrl ? [{ type: 'button', text: { type: 'plain_text', text: 'Download .md' }, url: exportUrl }] : [])\n      ]\n    }\n  ]\n};\nreturn [{ json: payload }];"
       }
     },
     {
-      "id": "7-post-slack",
+      "id": "7b-format-fail",
+      "name": "Format draft-failed Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 400],
+      "parameters": {
+        "jsCode": "const ctx = $json;\nconst rfp = ctx.rfp || {};\nconst screening = ctx.screening || {};\nconst job = $('Filter terminal + unsent').item.json;\nconst err = (job && job.error_message) || '(no error message recorded)';\nconst errShort = err.length > 240 ? err.slice(0, 240) + '…' : err;\n\nconst sourceType = rfp.source_type || 'unknown';\nconst meta = rfp.source_metadata || {};\nconst sender = meta.from || meta.notice_id || meta.filename || meta.url || '';\nconst received = rfp.received_at ? new Date(rfp.received_at).toLocaleString() : '';\nconst breadcrumb = sourceType === 'email'\n  ? `Source: email from ${sender} (received ${received})`\n  : sourceType === 'sam_gov'\n    ? `Source: SAM.gov notice ${meta.notice_id || rfp.external_id || ''} (received ${received})`\n    : `Source: ${sourceType} ${sender} (received ${received})`;\n\nconst uiUrl = $env.KAIZEN_UI_URL || 'http://localhost:8501';\nconst rfpUrl = `${uiUrl}/?rfp=${rfp.id}`;\n\nconst payload = {\n  text: `:warning: Draft generation failed — ${rfp.title || '(no title)'}`,\n  blocks: [\n    { type: 'header', text: { type: 'plain_text', text: `:warning: Draft failed — ${rfp.title || '(no title)'}`.slice(0, 150), emoji: true } },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Agency*\\n${rfp.agency || '—'}` },\n        { type: 'mrkdwn', text: `*Fit score*\\n${screening.fit_score ?? '—'}` },\n        { type: 'mrkdwn', text: `*Job id*\\n\\`${(job && job.id) || '?'}\\`` },\n        { type: 'mrkdwn', text: `*Status*\\nfailed` }\n      ]\n    },\n    { type: 'section', text: { type: 'mrkdwn', text: `*Error*\\n\\`${errShort}\\`` } },\n    { type: 'context', elements: [{ type: 'mrkdwn', text: breadcrumb }] },\n    {\n      type: 'actions',\n      elements: [\n        { type: 'button', text: { type: 'plain_text', text: 'Open RFP' }, url: rfpUrl, style: 'primary' }\n      ]\n    }\n  ]\n};\nreturn [{ json: payload }];"
+      }
+    },
+    {
+      "id": "8-post-slack",
       "name": "POST to Slack",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1560, 300],
+      "position": [1780, 300],
       "parameters": {
         "method": "POST",
         "url": "={{ $env.SLACK_WEBHOOK_URL }}",
@@ -99,11 +130,18 @@
     }
   ],
   "connections": {
-    "Every 30 seconds":                { "main": [[{ "node": "Compute 'since' marker", "type": "main", "index": 0 }]] },
-    "Compute 'since' marker":          { "main": [[{ "node": "GET /draft_jobs (completed since)", "type": "main", "index": 0 }]] },
-    "GET /draft_jobs (completed since)": { "main": [[{ "node": "Filter unsent", "type": "main", "index": 0 }]] },
-    "Filter unsent":                   { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
-    "GET /rfp/{id}":                   { "main": [[{ "node": "Format draft-ready Slack", "type": "main", "index": 0 }]] },
-    "Format draft-ready Slack":        { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
+    "Every 30 seconds":                  { "main": [[{ "node": "Compute 'since' marker", "type": "main", "index": 0 }]] },
+    "Compute 'since' marker":            { "main": [[{ "node": "GET /draft_jobs (recent terminal)", "type": "main", "index": 0 }]] },
+    "GET /draft_jobs (recent terminal)": { "main": [[{ "node": "Filter terminal + unsent", "type": "main", "index": 0 }]] },
+    "Filter terminal + unsent":          { "main": [[{ "node": "GET /rfp/{id}", "type": "main", "index": 0 }]] },
+    "GET /rfp/{id}":                     { "main": [[{ "node": "Completed or failed?", "type": "main", "index": 0 }]] },
+    "Completed or failed?": {
+      "main": [
+        [{ "node": "Format draft-ready Slack", "type": "main", "index": 0 }],
+        [{ "node": "Format draft-failed Slack", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format draft-ready Slack":  { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] },
+    "Format draft-failed Slack": { "main": [[{ "node": "POST to Slack", "type": "main", "index": 0 }]] }
   }
 }

@@ -117,7 +117,7 @@ def render() -> None:
         return
 
     if not adapters:
-        empty_state("No adapters configured.", icon=":material/cable:")
+        empty_state("No adapters configured.", icon="🔌")
         return
 
     for a in adapters:

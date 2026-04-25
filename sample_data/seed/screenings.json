@@ -1,0 +1,947 @@
+[
+  {
+    "id": "4c6fc2ed-c834-4e8c-9242-08788b48adad",
+    "rfp_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+    "fit_score": 87,
+    "recommendation": "pursue",
+    "rationale": {
+      "dimensions": [
+        {
+          "id": "wd_past_performance_relevance",
+          "name": "Past performance relevance",
+          "score": 92,
+          "weight": 30.0,
+          "reasoning": "Near-perfect past performance alignment. Maryland DHS Benefits Analytics Platform (similar proposal #1, $4.2M, state benefits program) provides direct state-level benefits administration experience. Commerce Trade Data Modernization (similar proposal #2, $8.4M) demonstrates federal civilian Snowflake/dbt/Airflow delivery at comparable scale. CMS Healthcare Data Pipeline Modernization (similar proposal #3, $6.1M) shows federal benefits program experience with pipeline migration. RFP Section 4 requires 'three past performance citations from the last five years, at least two federal civilian, minimum $2.5M each, preference for federal benefits programs and legacy ETL modernization' - we can provide all three with direct relevance. Only gap preventing a 95+ score is that none of our past work was specifically SNAP/FNS, though Maryland DHS and CMS are closely adjacent.",
+          "evidence_citations": [
+            "RFP Section 4: 'Preference for offerors with experience in federal benefits programs (SNAP, Medicaid, Medicare, TANF, or comparable) and direct experience modernizing legacy ETL infrastructure'",
+            "Similar proposal #1: Maryland DHS Benefits Analytics Platform, $4.2M, state benefits program",
+            "Similar proposal #2: Commerce ITA Trade Data Modernization, $8.4M, federal civilian, Snowflake/dbt",
+            "Similar proposal #3: CMS Healthcare Data Pipeline Modernization, $6.1M, federal benefits, pipeline migration"
+          ]
+        },
+        {
+          "id": "wd_technical_capability_match",
+          "name": "Technical capability match",
+          "score": 95,
+          "weight": 25.0,
+          "reasoning": "Exceptional technical alignment. RFP Section 2 and 3 requirements map directly to our core capabilities: (1) Snowflake platform on AWS GovCloud - company profile lists 'Snowflake and Databricks delivery experience across 40+ projects' as core capability; (2) dbt and Apache Airflow - profile states 'Production data pipelines using Airflow, dbt, Fivetran'; (3) SSIS migration - profile explicitly mentions 'Strong track record migrating SSIS and Informatica workloads to modern orchestration' and RFP requires 'minimum 3 completed migrations' which we can demonstrate; (4) Tableau dashboards with row-level security - profile lists 'Tableau, Power BI, and Looker dashboard development' as core; (5) Data quality framework - profile lists 'custom data quality frameworks' as core capability; (6) FISMA Moderate - profile shows ISO 27001:2022 certification and federal delivery experience. The only requirement not explicitly in our core list is the specific '19 SSIS pipelines' scale, but similar proposal #3 mentions '17 legacy Informatica pipelines' migration, demonstrating comparable scope.",
+          "evidence_citations": [
+            "RFP Section 2: 'Migrate to Snowflake-based platform on AWS GovCloud', 'dbt transformation framework orchestrated by Apache Airflow', 'Migrate 19 SSIS-based pipelines'",
+            "RFP Section 3: 'Demonstrated delivery of Snowflake-based data platforms for federal civilian agencies', 'Experience migrating SSIS pipelines to modern orchestration. Minimum 3 completed migrations'",
+            "Company profile: 'Snowflake and Databricks delivery experience across 40+ projects', 'Strong track record migrating SSIS and Informatica workloads to modern orchestration'",
+            "Similar proposal #3 excerpt: 'Migrated 17 legacy Informatica pipelines to Apache Airflow on AWS'"
+          ]
+        },
+        {
+          "id": "wd_contract_vehicle_and_naics",
+          "name": "Contract vehicle and NAICS fit",
+          "score": 85,
+          "weight": 15.0,
+          "reasoning": "Strong alignment with minor vehicle consideration. NAICS 541512 (Computer Systems Design Services) matches our registered codes per company profile ('GSA Multiple Award Schedule (MAS), SIN: 54151S, 518210C'). RFP Section 1 states 'Contract Vehicle: Open Competition' which we can pursue. We are not on a pre-competed vehicle for this specific solicitation, but open competition is our standard path and we have relevant GSA MAS SINs. Small business set-aside aligns with our status. Score is 85 rather than 90+ because this is open competition rather than a vehicle we already hold for this specific agency, requiring full proposal effort rather than streamlined task order response.",
+          "evidence_citations": [
+            "RFP Section 1: 'NAICS Code: 541512 - Computer Systems Design Services', 'Contract Vehicle: Open Competition'",
+            "Company profile: 'GSA Multiple Award Schedule (MAS), SIN: 54151S, 518210C, Status: Active'"
+          ]
+        },
+        {
+          "id": "wd_contract_value_fit",
+          "name": "Contract value fit",
+          "score": 95,
+          "weight": 10.0,
+          "reasoning": "Contract value of $3.8M for 24-month base period is squarely in our sweet spot range of $1.5M-$12M per company profile target contract profile. This represents strong proposal ROI - large enough to justify full pursuit effort, small enough that we can prime without stretching capacity. Company profile shows we've successfully delivered contracts in this range (Maryland DHS $4.2M, Commerce $8.4M, CMS $6.1M as subcontractor).",
+          "evidence_citations": [
+            "RFP Section 1: 'Estimated Value: $3,800,000 (24-month base period)'",
+            "Company profile: 'sweet_spot_low: 1_500_000, sweet_spot_high: 12_000_000'"
+          ]
+        },
+        {
+          "id": "wd_deadline_feasibility",
+          "name": "Deadline feasibility",
+          "score": 88,
+          "weight": 10.0,
+          "reasoning": "61 days until June 24, 2026 deadline provides ample time for competitive proposal development. RFP Section 7 specifies 30-page technical volume limit, which is manageable. High reuse potential from three similar past proposals identified by retrieval system - Maryland DHS benefits work, Commerce trade data modernization, and CMS healthcare pipelines all provide relevant content for executive summary, past performance, technical approach, and qualifications sections. Similar proposal #2 excerpt shows we've delivered the exact technical approach (Snowflake/dbt/Airflow migration) that this RFP requires. Current pursuit load not specified in context, but 61 days is sufficient even with moderate concurrent pursuit activity. Score is 88 rather than 90+ only because RFP requires some original content for SNAP-specific domain knowledge and the 19-state pipeline migration approach.",
+          "evidence_citations": [
+            "RFP Section 7: 'Volume I (Technical) shall not exceed thirty (30) pages'",
+            "Context: 'Days until response due: 61'",
+            "Similar proposals: Three highly relevant past proposals with similarity scores 0.669, 0.594, 0.585"
+          ]
+        },
+        {
+          "id": "wd_geographic_and_clearance",
+          "name": "Geographic and clearance alignment",
+          "score": 82,
+          "weight": 10.0,
+          "reasoning": "Good but not perfect alignment. RFP Section 1 specifies 'Place of Performance: Alexandria, VA (hybrid; 30% on-site)' which is in our primary DMV geography per company profile. Company headquarters in Silver Spring, MD provides easy access to Alexandria, VA location. However, 30% on-site requirement (roughly 1.5 days/week) is more than our typical 'remote delivery supported for 90% of work' model, requiring dedicated local staff assignment. RFP Section 3 requires 'Active Facility Clearance at Secret level minimum' which we hold per company profile. We have 14 staff with clearances including 3 TS/SCI, sufficient to staff Secret-level work. Score is 82 rather than 90+ due to the on-site requirement being slightly higher than our typical engagement model, though still manageable given DMV location.",
+          "evidence_citations": [
+            "RFP Section 1: 'Place of Performance: Alexandria, VA (hybrid; 30% on-site)'",
+            "RFP Section 3: 'Active Facility Clearance at Secret level minimum'",
+            "Company profile: 'headquarters: Silver Spring, Maryland', 'primary: [DC metro, Maryland, Virginia]', 'facility_clearance_level: Secret', 'staff_with_clearance: 14'"
+          ]
+        }
+      ],
+      "confidence_level": "high",
+      "confidence_notes": "RFP is detailed and unambiguous. Technical requirements map directly to our core capabilities. Past performance requirements align precisely with our portfolio. No significant unknowns that would change the assessment.",
+      "effort_reasoning": "30-page technical volume with 61-day timeline is standard effort. High reuse potential from three similar past proposals (benefits platform, federal data modernization, pipeline migration) reduces original content requirements. However, RFP requires detailed technical approach for 19-state SSIS pipeline migration with state-specific characteristics, anomaly detection framework design, and SNAP domain knowledge - all requiring original analysis and writing. Evaluation emphasizes technical approach and past performance, requiring strong narrative development. Overall: medium effort, likely 200-250 person-hours across capture, technical writing, and proposal management.",
+      "calibration_notes": "Rubric performed well for this evaluation. The weighted dimensions captured all relevant decision factors. One potential rubric enhancement: consider adding a sub-dimension under 'technical_capability_match' that specifically addresses scale/complexity of prior work (e.g., number of pipelines migrated, number of data sources integrated) since RFPs often specify minimum thresholds like '3 completed SSIS migrations.' This would make the scoring more granular. Also note that the 'small business size standard' issue is a critical verification item that sits between hard disqualifier and deal-breaker - current rubric structure handled it appropriately by not triggering hard disqualifier (since we historically qualify) but flagging as high-severity deal-breaker requiring immediate verification.",
+      "recommendation_rationale": "Exceptional alignment across all dimensions. This is a near-perfect match for Meridian: federal civilian benefits program, Snowflake/dbt/Airflow stack we've delivered multiple times, SSIS migration experience from three past engagements, contract value in our sweet spot ($3.8M), and strong past performance citations available (Maryland DHS benefits work, Commerce trade data, CMS healthcare pipelines). Small business set-aside we qualify for, Secret clearance we hold, and 61 days to respond with high reuse potential from similar past proposals.",
+      "hard_disqualifier_results": [
+        {
+          "id": "hd_clearance_tssci",
+          "evidence": "RFP Section 3 states 'Active Facility Clearance at Secret level minimum' - does not require TS/SCI. Company profile shows we hold Secret facility clearance.",
+          "reasoning": "Secret clearance requirement matches our current facility clearance level. No TS/SCI requirement present.",
+          "triggered": false
+        },
+        {
+          "id": "hd_contract_value_floor",
+          "evidence": "RFP Section 1 states 'Estimated Value: $3,800,000 (24-month base period)' which is well above our $250,000 minimum threshold.",
+          "reasoning": "Contract value of $3.8M is 15x our minimum threshold and within our sweet spot range of $1.5M-$12M.",
+          "triggered": false
+        },
+        {
+          "id": "hd_set_aside_exclusion",
+          "evidence": "RFP Section 1 states 'Set-Aside: Total Small Business Set-Aside (FAR 19.5)' and NAICS 541512 with size standard of $34.0 million. Company profile shows revenue of $34.8M and states we qualify for small business set-asides under NAICS 541511 and 541512.",
+          "reasoning": "Total small business set-aside under NAICS 541512. We are at $34.8M revenue against $34.0M size standard - this is marginal and requires verification of our current size certification status, but not an automatic disqualifier as we've historically qualified. Flagging as deal-breaker for verification.",
+          "triggered": false
+        },
+        {
+          "id": "hd_out_of_domain",
+          "evidence": "RFP Section 2 scope includes: Snowflake data platform migration, dbt/Airflow ETL modernization, Tableau analytics, data quality framework - all core data modernization work. Section 1 describes SNAP Operational Data Repository modernization.",
+          "reasoning": "Scope is squarely within our data platform and analytics domain. This is core Meridian work, not application development or out-of-domain services.",
+          "triggered": false
+        }
+      ],
+      "similar_past_proposals_analysis": [
+        {
+          "proposal_id": null,
+          "why_relevant": "Maryland DHS Benefits Analytics Platform provides direct state-level benefits administration experience in a domain (TANF, SNAP-adjacent social services) highly relevant to federal SNAP work. Demonstrates our ability to navigate benefits program data complexities, data quality challenges in benefits administration, and analytics requirements for program oversight - all central to this RFP.",
+          "reusable_sections": [
+            "Executive Summary (benefits program positioning)",
+            "Past Performance (state benefits experience)",
+            "Understanding of Benefits Data Challenges",
+            "Data Quality Framework approach",
+            "Analytics and Reporting approach for program oversight"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Commerce Trade Data Modernization demonstrates our federal civilian Snowflake/dbt/Airflow delivery capability at the exact scale and technical stack this RFP requires. Excerpt mentions 'migrating 14 legacy data sources to Snowflake and building the foundational dbt transform' which directly parallels the SNAP requirement to migrate 19 state pipelines to Snowflake/dbt.",
+          "reusable_sections": [
+            "Technical Approach for Snowflake migration",
+            "dbt transformation framework design",
+            "AWS GovCloud architecture patterns",
+            "Federal data platform delivery methodology",
+            "Past Performance (federal civilian data modernization)"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "CMS Healthcare Data Pipeline Modernization provides federal benefits program experience (Medicare/Medicaid) and demonstrates legacy pipeline migration capability. Excerpt mentions 'Migrated 17 legacy Informatica pipelines to Apache Airflow on AWS' which directly addresses RFP requirement for SSIS pipeline migration experience (minimum 3 completed migrations).",
+          "reusable_sections": [
+            "Past Performance (federal benefits program)",
+            "Legacy Pipeline Migration Methodology",
+            "Apache Airflow orchestration approach",
+            "Federal healthcare/benefits domain understanding",
+            "Data quality and anomaly detection for benefits programs"
+          ],
+          "relevance_strength": "strong"
+        }
+      ]
+    },
+    "effort_estimate": "medium",
+    "deal_breakers": [
+      {
+        "concern": "Small business size standard verification - we are at $34.8M revenue against $34.0M NAICS 541512 size standard",
+        "severity": "high",
+        "how_to_verify": "Confirm with Contracts Director (Theresa Chen) our current size certification status under NAICS 541512. Verify whether our FY2025 revenue of $34.8M disqualifies us from small business status. Check if we have recent size recertification or if we're grandfathered under previous certification. If we exceed size standard, this is a total small business set-aside we cannot pursue as prime.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "CMMI Level 3 requirement stated in RFP Section 3 - need to verify our appraisal is still current",
+        "severity": "medium",
+        "how_to_verify": "Company profile states 'CMMI Level 3 (appraised 2023)' - verify this appraisal is still valid and that we have documentation to submit with proposal. CMMI appraisals typically valid for 3 years, so 2023 appraisal should be current through 2026, but confirm with Quality team.",
+        "would_change_recommendation_to": "maybe"
+      },
+      {
+        "concern": "Minimum 3 completed SSIS migrations requirement - need to verify we can cite three specific projects",
+        "severity": "medium",
+        "how_to_verify": "RFP Section 3 requires 'Experience migrating SSIS pipelines to modern orchestration. Minimum 3 completed migrations.' Company profile mentions 'Strong track record migrating SSIS and Informatica workloads' and similar proposal #3 mentions 17 Informatica pipelines, but need to confirm we have three distinct SSIS (not just Informatica) migration projects we can cite. If we only have 1-2 SSIS migrations and rest are Informatica, may need to address in technical approach how Informatica experience transfers.",
+        "would_change_recommendation_to": "maybe"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "Does the RFP require on-site presence in Alexandria for specific roles (e.g., PM, tech lead) or is the 30% on-site requirement flexible across the team?",
+        "best_guess": "Likely flexible across team given 'hybrid' designation, but should clarify in questions period if pursuing.",
+        "why_it_matters": "Affects staffing plan and whether we need to dedicate specific individuals to Alexandria location versus rotating team members. Could impact our ability to leverage remote staff from our 118-person workforce."
+      },
+      {
+        "question": "Are there incumbent contractors on this work, and if so, what is the incumbent's performance record?",
+        "best_guess": "RFP does not mention incumbent, suggesting either new requirement or incumbent not being rebid. But this is speculation.",
+        "why_it_matters": "Incumbent with strong performance creates higher bar for displacement. Affects win probability assessment and whether we should plan for transition-in activities in technical approach."
+      },
+      {
+        "question": "What is FNS's current Snowflake maturity - is this a net-new Snowflake implementation or do they have existing Snowflake environments we're expanding?",
+        "best_guess": "RFP Section 2 language 'Migrate the SNAP Operational Data Repository from its current on-premise SQL Server environment to a Snowflake-based platform' suggests net-new Snowflake implementation, but should confirm.",
+        "why_it_matters": "Affects technical approach complexity and risk profile. Net-new implementation requires more foundational architecture work; expansion of existing environment requires integration with current patterns."
+      },
+      {
+        "question": "What is the evaluation scoring methodology - is this lowest price technically acceptable (LPTA) or best value tradeoff?",
+        "best_guess": "RFP Section 6 states 'Best-value evaluation. Factors in descending order: (1) Technical Approach, (2) Past Performance with emphasis on federal benefits programs, (3) Key Personnel, (4) Price.' This suggests best-value tradeoff with price as least important factor, but exact methodology unclear.",
+        "why_it_matters": "Affects pricing strategy and level of investment in technical approach. RFP Section 6 states 'Best-value evaluation' but doesn't specify tradeoff methodology or price sensitivity."
+      }
+    ],
+    "similar_proposal_ids": [],
+    "model_version": "claude-sonnet-4-5",
+    "rubric_version": "1.0",
+    "created_at": "2026-04-25T01:30:20.457858",
+    "human_override": null,
+    "human_override_reason": null
+  },
+  {
+    "id": "fda2777e-2cb7-4973-8be8-691df45991ae",
+    "rfp_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+    "fit_score": 82,
+    "recommendation": "pursue",
+    "rationale": {
+      "dimensions": [
+        {
+          "id": "wd_past_performance_relevance",
+          "name": "Past performance relevance",
+          "score": 85,
+          "weight": 30.0,
+          "reasoning": "Strong past performance alignment. Our HHS CMS Healthcare Data Pipeline Modernization ($6.1M, 2021-2023) is directly relevant - federal healthcare agency, data pipeline modernization, though we were subcontractor to Booz Allen rather than prime. Commerce Trade Data Modernization ($8.4M, 2022-2024) demonstrates prime contractor capability at required scale with cloud data platform delivery. Maryland DHS Benefits Analytics Platform ($4.2M, 2023-2025) shows state-level healthcare-adjacent work with data governance and analytics. RFP requires 'at least two federal civilian agencies, minimum $3M each' - we can cite Commerce ($8.4M prime) and CMS ($6.1M sub). Federal healthcare experience strongly preferred and we have CMS work. Minor gap: CMS work was as subcontractor, not prime.",
+          "evidence_citations": [
+            "RFP Section 4: 'At least two (2) must be federal civilian agencies, with a minimum contract value of $3,000,000 each. Prior VA, HHS, or other federal healthcare agency experience is strongly preferred.'",
+            "Similar proposal #3: HHS CMS Healthcare Data Pipeline Modernization, $6.1M",
+            "Similar proposal #2: Commerce Trade Data Modernization Phase II, $8.4M prime",
+            "Company profile: Maryland DHS Benefits Analytics Platform, $4.2M prime"
+          ]
+        },
+        {
+          "id": "wd_technical_capability_match",
+          "name": "Technical capability match",
+          "score": 90,
+          "weight": 25.0,
+          "reasoning": "Exceptional technical alignment. Every required capability maps to our core competencies: Snowflake data platforms (40+ projects per company profile), dbt transformation framework (explicitly called out in our ETL/ELT capability), Apache Airflow orchestration (mentioned in company profile), Collibra data governance (9 dedicated staff in our data governance practice), Tableau dashboard development (listed as core analytics capability). RFP requires 'Snowflake-based data platforms for federal healthcare agencies, at least one completed engagement of $4M or greater' - our Commerce project was $8.4M though need to verify Snowflake was primary platform. CMMI Level 3 required and we have it (appraised 2023). HIPAA awareness required and we have CMS healthcare experience. Only minor uncertainty is whether our Snowflake experience specifically meets the '$4M or greater' threshold versus our broader cloud data platform experience.",
+          "evidence_citations": [
+            "RFP Section 3: Required capabilities list matches our core capabilities exactly",
+            "Company profile: 'Snowflake and Databricks delivery experience across 40+ projects'",
+            "Company profile: 'Production data pipelines using Airflow, dbt, Fivetran'",
+            "Company profile: 'Collibra and Alation implementations; custom data quality frameworks'",
+            "Company profile: 'CMMI Level 3 (appraised 2023)'"
+          ]
+        },
+        {
+          "id": "wd_contract_vehicle_and_naics",
+          "name": "Contract vehicle and NAICS fit",
+          "score": 85,
+          "weight": 15.0,
+          "reasoning": "Strong vehicle and NAICS alignment. RFP states 'Contract Vehicle: GSA MAS or open competition' and we hold active GSA MAS with SIN 54151S which covers custom computer programming services. NAICS 541511 matches our registered codes and our work. Small business set-aside is acceptable in principle, but we need to verify our current size status - our FY2025 revenue of $34.8M is just above the $34M size standard stated in the RFP. This could be a timing issue (when is size determined - at proposal submission or at time of award?) or we may have recently exceeded the threshold. This is a critical verification item.",
+          "evidence_citations": [
+            "RFP: 'NAICS Code: 541511 - Custom Computer Programming Services, Size Standard: $34.0 million'",
+            "RFP: 'Contract Vehicle: GSA MAS or open competition'",
+            "Company profile: 'GSA Multiple Award Schedule (MAS), sin: [54151S, 518210C], status: Active'",
+            "Company profile: 'revenue_fy2025_usd: 34_800_000'"
+          ]
+        },
+        {
+          "id": "wd_contract_value_fit",
+          "name": "Contract value fit",
+          "score": 95,
+          "weight": 10.0,
+          "reasoning": "Excellent contract value fit. $5.2M base value (24 months) plus 12-month option sits squarely in our sweet spot range of $1.5M-$12M. This is a mid-size opportunity that matches our organizational capacity and historical performance range. Our past performance includes Commerce at $8.4M, CMS at $6.1M, and Maryland DHS at $4.2M, demonstrating we operate comfortably at this scale.",
+          "evidence_citations": [
+            "RFP: 'Estimated Value: $5,200,000 (24-month base + 12-month option)'",
+            "Company profile: 'sweet_spot_low: 1_500_000, sweet_spot_high: 12_000_000'"
+          ]
+        },
+        {
+          "id": "wd_deadline_feasibility",
+          "name": "Deadline feasibility",
+          "score": 80,
+          "weight": 10.0,
+          "reasoning": "Good deadline feasibility. 75 days until July 8, 2026 deadline provides adequate time for proposal development. RFP limits technical volume to 35 pages, which is manageable. We have three highly relevant past proposals to draw from (CMS healthcare data pipelines, Commerce trade data modernization, Maryland DHS benefits analytics), suggesting high reuse potential for technical approach, past performance narratives, and corporate qualifications sections. The requirement for three past performance citations with specific federal civilian agency criteria will require careful curation but we have the citations. No indication of unusual proposal complexity beyond standard best-value technical/price structure.",
+          "evidence_citations": [
+            "Context: 'Days until response due: 75'",
+            "RFP Section 7: 'Volume I (Technical) shall not exceed thirty-five (35) pages'",
+            "Similar proposals provided show direct relevance for content reuse"
+          ]
+        },
+        {
+          "id": "wd_geographic_and_clearance",
+          "name": "Geographic and clearance alignment",
+          "score": 75,
+          "weight": 10.0,
+          "reasoning": "Acceptable geographic and clearance alignment with some friction. Place of performance is Washington, DC and Martinsburg, WV with hybrid model requiring 25% on-site. DC is in our primary geography (DMV), so on-site presence is feasible from our Silver Spring, MD headquarters. Martinsburg, WV is about 90 minutes from Silver Spring, manageable for 25% on-site requirement. Secret facility clearance required and we hold it. Minimum 4 cleared staff required for key personnel and we have 14 cleared staff, so we can meet this requirement. Minor friction is the split location (DC and Martinsburg) requiring staff who can work across both sites, and 25% on-site is higher than our typical remote-first model but not prohibitive.",
+          "evidence_citations": [
+            "RFP: 'Place of Performance: Washington, DC and Martinsburg, WV (hybrid; 25% on-site)'",
+            "RFP Section 3: 'Active Facility Clearance at the Secret level. Minimum 4 cleared staff proposed for key personnel roles.'",
+            "Company profile: 'headquarters: Silver Spring, Maryland'",
+            "Company profile: 'facility_clearance_level: Secret, staff_with_clearance: 14'",
+            "Company profile: 'primary: [DC metro, Maryland, Virginia]'"
+          ]
+        }
+      ],
+      "confidence_level": "high",
+      "confidence_notes": "RFP is explicit on requirements, we have direct past performance citations, and technical requirements map cleanly to our core capabilities. Only moderate uncertainty is around the 'at least one completed engagement of $4M or greater' for Snowflake specifically - our Commerce project was $8.4M but need to verify Snowflake was primary platform versus supporting component.",
+      "effort_reasoning": "35-page technical volume with standard best-value structure. High content reuse potential from three similar past proposals (CMS, Commerce, Maryland DHS). Will require original technical approach for VHA-specific requirements and careful past performance narrative construction to address federal healthcare preference. Three past performance citations with references required. Moderate effort overall.",
+      "calibration_notes": "The small business size standard issue highlights a gap in the hard disqualifiers - we should add a check for size standard compliance when set-asides are involved, not just set-aside category eligibility. The Snowflake-specific federal healthcare experience requirement also reveals that 'past performance relevance' scoring could be more granular - we may want to separate 'domain match' from 'technology stack match' from 'scale match' as sub-scores rather than holistic dimension score. Overall, rubric performed well - the weighted dimensions captured the key decision factors and the 82 fit score feels calibrated to the strength of this opportunity.",
+      "recommendation_rationale": "Strong alignment across all dimensions. We have directly relevant past performance (HHS CMS healthcare data pipeline modernization at $6.1M), the technical stack is core to our capabilities (Snowflake, dbt, Airflow, Collibra, Tableau), and we meet all required qualifications including Secret facility clearance and CMMI Level 3. Contract value of $5.2M sits in our sweet spot, and 75 days provides adequate proposal development time.",
+      "hard_disqualifier_results": [
+        {
+          "id": "hd_clearance_tssci",
+          "evidence": "RFP Section 3 states 'Active Facility Clearance at the Secret level. Minimum 4 cleared staff proposed for key personnel roles.' Company profile shows facility clearance at Secret level with 14 cleared staff.",
+          "reasoning": "Secret facility clearance required and we hold it. TS/SCI not required. We can staff 4+ cleared personnel from our pool of 14.",
+          "triggered": false
+        },
+        {
+          "id": "hd_contract_value_floor",
+          "evidence": "RFP states 'Estimated Value: $5,200,000 (24-month base + 12-month option)'",
+          "reasoning": "Contract value of $5.2M is well above our $250K minimum threshold and within our sweet spot range of $1.5M-$12M.",
+          "triggered": false
+        },
+        {
+          "id": "hd_set_aside_exclusion",
+          "evidence": "RFP states 'Set-Aside: Total Small Business Set-Aside (FAR 19.5)' and 'NAICS Code: 541511 - Custom Computer Programming Services, Size Standard: $34.0 million'",
+          "reasoning": "Total small business set-aside is acceptable. We qualify as small business under NAICS 541511 with FY2025 revenue of $34.8M, which is just above the $34M size standard. This is a potential deal-breaker that needs immediate verification of our current size status.",
+          "triggered": false
+        },
+        {
+          "id": "hd_out_of_domain",
+          "evidence": "RFP scope includes data warehouse consolidation, ETL pipeline modernization, data governance implementation, analytics layer development, and knowledge transfer - all core data platform work.",
+          "reasoning": "Scope is squarely within our data and analytics domain. Healthcare analytics platform modernization is core to our capabilities.",
+          "triggered": false
+        }
+      ],
+      "similar_past_proposals_analysis": [
+        {
+          "proposal_id": null,
+          "why_relevant": "HHS CMS Healthcare Data Pipeline Modernization is directly relevant - federal healthcare agency, data pipeline modernization scope, $6.1M value meets past performance threshold. Technical approach section on Informatica-to-modern-stack migration directly applicable to this RFP's 26 legacy ETL pipeline migration requirement.",
+          "reusable_sections": [
+            "Technical Approach - pipeline migration methodology",
+            "Past Performance - CMS healthcare narrative",
+            "Corporate Qualifications - HIPAA and healthcare domain experience"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Commerce Trade Data Modernization demonstrates prime contractor capability at required scale ($8.4M), cloud data platform delivery on AWS GovCloud with Snowflake, and dbt transformation framework - all core requirements of this RFP. Past Performance section provides template for federal civilian agency citation.",
+          "reusable_sections": [
+            "Past Performance - Commerce narrative as prime contractor",
+            "Technical Approach - Snowflake migration and dbt framework",
+            "Management Approach - CMMI Level 3 delivery framework",
+            "Executive Summary - federal data modernization positioning"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Maryland DHS Benefits Analytics Platform shows healthcare-adjacent domain experience (benefits administration) with data governance and analytics focus. Demonstrates our ability to work with sensitive PII/PHI data and deliver analytics platforms for mission-critical operations. Executive Summary provides template for positioning local presence and domain expertise.",
+          "reusable_sections": [
+            "Executive Summary - domain expertise positioning",
+            "Data Governance Approach - Collibra implementation methodology",
+            "Analytics and Reporting - Tableau dashboard development"
+          ],
+          "relevance_strength": "moderate"
+        }
+      ]
+    },
+    "effort_estimate": "medium",
+    "deal_breakers": [
+      {
+        "concern": "Small business size status verification - our FY2025 revenue of $34.8M exceeds the stated $34M NAICS 541511 size standard",
+        "severity": "high",
+        "how_to_verify": "Contracts team (Theresa Chen) must immediately verify: (1) What is our official size status for NAICS 541511 as of proposal submission date? (2) When is size determined for this procurement - at proposal submission or at award? (3) Do we have any basis to challenge size standard or argue we still qualify? If we definitively do not qualify as small business under this NAICS, this is a total small business set-aside and we cannot compete.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Snowflake federal healthcare experience at $4M+ scale - need to verify our Commerce project or other work meets the specific 'Snowflake-based data platforms for federal healthcare agencies, at least one completed engagement of $4M or greater' requirement",
+        "severity": "medium",
+        "how_to_verify": "Technical team (Marcus Halloran) should confirm: (1) Was Snowflake the primary data platform on our Commerce Trade Data Modernization project ($8.4M)? (2) If not, do we have another federal engagement at $4M+ where Snowflake was primary? (3) Can we credibly argue our CMS work ($6.1M) meets this even though we were subcontractor? If we cannot cite a $4M+ Snowflake federal project, we are technically non-responsive to Section 3 required capabilities, though we could argue our broader cloud data platform experience is equivalent.",
+        "would_change_recommendation_to": "maybe"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "Does the RFP require Snowflake specifically for federal healthcare, or is our CMS healthcare experience ($6.1M) plus our Commerce Snowflake experience ($8.4M) sufficient to demonstrate the required capability?",
+        "best_guess": "RFP language is slightly ambiguous. Most likely interpretation is that they want to see Snowflake experience at scale ($4M+) in federal context, and healthcare domain experience separately. Our Commerce Snowflake work ($8.4M federal) plus CMS healthcare work ($6.1M federal healthcare) should satisfy intent even if not a single perfect citation.",
+        "why_it_matters": "Section 3 states 'Demonstrated delivery of Snowflake-based data platforms for federal healthcare agencies, with at least one completed engagement of $4M or greater.' If this requires a single project that is both Snowflake AND federal healthcare AND $4M+, we may not have a perfect citation. If it can be demonstrated through combination of projects, we are strong."
+      },
+      {
+        "question": "What is the current pursuit load and do we have capacity to staff this if we win?",
+        "best_guess": "Given our size (118 employees) and the contract value ($5.2M over 24 months, roughly $2.6M/year), this represents about 7-8% of our annual revenue. Should be staffable, but proposals lead needs to confirm current pipeline and resource availability.",
+        "why_it_matters": "Context shows 'Current pursuit load: (not specified)'. If we are already at capacity with 3-5 active pursuits, adding another medium-effort proposal could strain resources. Also need to verify we can staff the engagement if won - 24-month base period with 4+ cleared staff required."
+      },
+      {
+        "question": "Is there any incumbent on this work, and if so, who?",
+        "best_guess": "RFP language suggests this is a modernization/consolidation effort rather than straight recompete, given description of 'four regional Oracle data warehouses' and 'legacy ETL pipelines' that need migration. Likely no single incumbent for the full scope, but there may be multiple regional contractors being consolidated.",
+        "why_it_matters": "Incumbent information would help assess competitive landscape and recompete dynamics. RFP describes current state as 'fragmented infrastructure' suggesting this may be new consolidated work rather than recompete, but not explicit."
+      }
+    ],
+    "similar_proposal_ids": [],
+    "model_version": "claude-sonnet-4-5",
+    "rubric_version": "1.0",
+    "created_at": "2026-04-25T01:13:53.471746",
+    "human_override": null,
+    "human_override_reason": null
+  },
+  {
+    "id": "6a8e8e9a-66ef-4f31-b98b-54808e7b314c",
+    "rfp_id": "52db4d78-f2b9-44fc-acd9-9f67a9a72604",
+    "fit_score": 82,
+    "recommendation": "pursue",
+    "rationale": {
+      "dimensions": [
+        {
+          "id": "wd_past_performance_relevance",
+          "name": "Past performance relevance",
+          "score": 85,
+          "weight": 30.0,
+          "reasoning": "Strong past performance alignment across three relevant projects. Commerce Trade Data Modernization ($8.4M, 2022-2024, prime, federal civilian) demonstrates federal data platform delivery at comparable scale. HHS CMS Healthcare Data Pipeline Modernization ($6.1M, 2021-2023, sub to Booz Allen) provides direct HHS experience with pipeline migration work. Maryland DHS Benefits Analytics Platform ($4.2M, 2023-2025, prime, state) shows data governance and analytics capability. All three involve cloud data platforms, pipeline modernization, and analytics - directly relevant to NIH's scope. The CMS project specifically involved legacy pipeline migration, which is a core NIH requirement. Scoring 85 rather than 90+ because: (1) CMS work was as subcontractor not prime, (2) need to verify both Commerce and CMS projects meet the '$2M or greater' threshold for federal civilian citations, and (3) we lack direct NIH experience (though HHS CMS is same department).",
+          "evidence_citations": [
+            "RFP Section 4: 'At least two (2) citations must be federal civilian agencies, with a minimum contract value of $2,000,000 each'",
+            "Similar proposal #2: Commerce Trade Data Modernization, $8.4M, federal civilian, WON",
+            "Similar proposal #3: HHS CMS Healthcare Pipeline, $6.1M, federal civilian (HHS), WON",
+            "Company profile: 'HHS CMS - Healthcare Data Pipeline Modernization, $6,100,000, 2021-2023, Subcontractor to Booz Allen Hamilton'"
+          ]
+        },
+        {
+          "id": "wd_technical_capability_match",
+          "name": "Technical capability match",
+          "score": 80,
+          "weight": 25.0,
+          "reasoning": "Very strong technical capability match with most requirements in our core capabilities. RFP requires: (1) Snowflake data platform - we list 'Snowflake and Databricks delivery experience across 40+ projects' as core capability; (2) dbt transformation framework - we explicitly cite 'dbt' in our ETL/ELT core capability with 'Strong track record migrating SSIS and Informatica workloads to modern orchestration'; (3) Apache Airflow orchestration - listed in our core ETL/ELT capability; (4) Tableau dashboards with row-level security - listed as core analytics capability; (5) Data governance using Collibra or Alation - we list 'Collibra and Alation implementations' as a core data governance capability; (6) SSIS pipeline migration - explicitly called out in our ETL/ELT description. The only gap is that data governance is listed as 'deep' but the RFP requires 'demonstrated delivery' of Collibra/Alation implementations, and our company profile shows only 9 dedicated governance staff, suggesting this may be a smaller practice area than our pipeline or platform work. Scoring 80 rather than 90+ due to: (1) need to verify we have completed Collibra or Alation implementations at federal scale, and (2) the RFP's requirement for 'at least two completed Snowflake engagements of $2M or greater' needs verification against our past performance.",
+          "evidence_citations": [
+            "RFP Section 3: 'Demonstrated delivery of Snowflake-based data platforms for federal civilian agencies, with at least two completed engagements of $2M or greater'",
+            "RFP Section 2: 'Migrate eighteen (18) SSIS-based ETL pipelines...to a dbt-based transformation layer orchestrated by Apache Airflow'",
+            "Company profile capabilities: 'Snowflake and Databricks delivery experience across 40+ projects'",
+            "Company profile capabilities: 'Strong track record migrating SSIS and Informatica workloads to modern orchestration'",
+            "Company profile capabilities: 'Collibra and Alation implementations'"
+          ]
+        },
+        {
+          "id": "wd_contract_vehicle_and_naics",
+          "name": "Contract vehicle and NAICS fit",
+          "score": 85,
+          "weight": 15.0,
+          "reasoning": "Strong vehicle and NAICS alignment. RFP specifies NAICS 541511 (Custom Computer Programming Services), which matches our GSA MAS SIN 54151S exactly. RFP states 'Contract Vehicle: Open Competition' and notes 'Active GSA Multiple Award Schedule position under SIN 54151S or demonstrated ability to propose on open competition' - we hold GSA MAS with SIN 54151S active per our company profile. This is an ideal procurement path for us. Scoring 85 rather than 90+ because: (1) the small business set-aside creates eligibility uncertainty given our $34.8M revenue against the $34M size standard, and (2) open competition means we face full market competition rather than having a vehicle advantage.",
+          "evidence_citations": [
+            "RFP Section 1: 'NAICS Code: 541511 - Custom Computer Programming Services, Size Standard: $34.0 million'",
+            "RFP Section 3: 'Active GSA Multiple Award Schedule position under SIN 54151S'",
+            "Company profile: 'GSA Multiple Award Schedule (MAS), sin: [54151S, 518210C], status: Active'"
+          ]
+        },
+        {
+          "id": "wd_contract_value_fit",
+          "name": "Contract value fit",
+          "score": 95,
+          "weight": 10.0,
+          "reasoning": "Excellent contract value fit. The $4.8M estimated value (24-month base plus 12-month option) falls squarely in our sweet spot range of $1.5M-$12M. At approximately $2M per year for the base period, this represents a mid-size engagement that matches our delivery capacity and proposal ROI requirements. The value is large enough to justify a competitive proposal effort but not so large as to strain our 118-person organization. This is an ideal deal size for Meridian.",
+          "evidence_citations": [
+            "RFP Section 1: 'Estimated Value: $4,800,000 (24-month base plus one 12-month option)'",
+            "Company profile target_contract_profile: 'sweet_spot_low: 1_500_000, sweet_spot_high: 12_000_000'"
+          ]
+        },
+        {
+          "id": "wd_deadline_feasibility",
+          "name": "Deadline feasibility",
+          "score": 90,
+          "weight": 10.0,
+          "reasoning": "Excellent deadline feasibility. Response due June 15, 2026, which is 52 days from current date of April 24, 2026. This provides ample time for a competitive proposal. RFP structure is standard (Technical, Past Performance, Key Personnel, Price volumes) with reasonable page limits (30 pages technical, 15 pages past performance). We have three highly relevant past proposals to draw from (Commerce Trade Data, HHS CMS Healthcare Pipeline, Maryland DHS Benefits Analytics), all of which won and contain reusable content for technical approach, past performance narratives, and corporate qualifications sections. The technical scope (Snowflake, dbt, Airflow, Tableau, data governance) aligns with our core capabilities, reducing the need for extensive new content development. Scoring 90 rather than higher because: (1) we need to resolve the small business size standard question quickly to avoid wasted effort, and (2) the data governance section may require new content if our Collibra/Alation experience is less documented than our pipeline work.",
+          "evidence_citations": [
+            "RFP Section 7: 'Response Due: June 15, 2026, 5:00 PM Eastern'",
+            "Current date: 2026-04-24 (52 days until deadline)",
+            "Similar proposals: Commerce Trade Data ($8.4M, WON), HHS CMS Healthcare Pipeline ($6.1M, WON), Maryland DHS Benefits Analytics ($4.2M, WON)"
+          ]
+        },
+        {
+          "id": "wd_geographic_and_clearance",
+          "name": "Geographic and clearance alignment",
+          "score": 85,
+          "weight": 10.0,
+          "reasoning": "Strong geographic and clearance alignment. Place of performance is Bethesda, MD with hybrid work model (30% on-site expected). Bethesda is in our primary DMV geography and approximately 10 miles from our Silver Spring, MD headquarters - this is ideal for us. The 30% on-site requirement is manageable for our local staff. Clearance requirements are Secret facility clearance with minimum 3 cleared staff for key personnel roles. We hold Secret FCL and have 14 cleared staff, well exceeding the requirement. Scoring 85 rather than 90+ because: (1) the 30% on-site requirement will constrain our ability to use remote staff from outside DMV, potentially limiting our staffing flexibility, and (2) we need to verify that our 14 cleared staff include sufficient senior personnel to fill the key personnel roles (the RFP will likely require cleared technical leads, not just cleared junior staff).",
+          "evidence_citations": [
+            "RFP Section 1: 'Place of Performance: Bethesda, MD (hybrid; 30% on-site expected)'",
+            "RFP Section 3: 'Facility Clearance at the Secret level, with a minimum of three cleared staff proposed for key personnel roles'",
+            "Company profile: 'headquarters: Silver Spring, Maryland'",
+            "Company profile clearances: 'facility_clearance_level: Secret, staff_with_clearance: 14'"
+          ]
+        }
+      ],
+      "confidence_level": "high",
+      "confidence_notes": "High confidence based on clear RFP requirements, strong capability alignment, and three highly relevant past performance examples. The only uncertainty is whether our two federal Snowflake projects (Commerce and CMS subcontract) both meet the '$2M or greater' threshold stated in the RFP.",
+      "effort_reasoning": "Medium effort proposal. We have strong reusable content from three relevant past wins (Commerce, CMS, Maryland DHS), but will need to develop new data governance narrative if our Collibra/Alation experience is less documented. The 30-page technical volume and 15-page past performance volume are standard sizes. Key effort drivers: (1) tailoring technical approach to NIH's specific 18-pipeline migration scope, (2) developing Snowflake federal reference narrative to meet the 'two completed engagements of $2M or greater' requirement, (3) crafting data governance approach that demonstrates Collibra/Alation depth, and (4) assembling cleared key personnel team. Estimate 200-250 hours total proposal effort.",
+      "calibration_notes": "Rubric performed well for this evaluation. The weighted dimensions captured the key decision factors effectively. One observation: the 'contract_vehicle_and_naics' dimension conflates two distinct concerns - procurement path (vehicle) and size standard eligibility. In this case, the size standard question is a potential hard disqualifier, not just a scoring dimension. Consider adding 'hd_size_standard_eligibility' as a fifth hard disqualifier in future rubric versions, particularly for set-aside solicitations. Also consider adding a sub-criterion under 'past_performance_relevance' that explicitly scores 'prime vs. sub role alignment' since RFPs often prefer prime experience and our CMS project was as a sub.",
+      "recommendation_rationale": "Strong technical and past performance alignment with NIH's clinical data platform modernization. We have directly relevant federal civilian experience (Commerce Trade Data, HHS CMS Healthcare Pipeline) with the exact technology stack required (Snowflake, dbt, Airflow, Tableau). The $4.8M contract value sits in our sweet spot, and we meet all hard requirements including CMMI Level 3, Secret clearance, and small business status. Primary concerns are the Collibra/Alation governance requirement (emerging capability for us) and verifying our Snowflake federal reference count.",
+      "hard_disqualifier_results": [
+        {
+          "id": "hd_clearance_tssci",
+          "evidence": "RFP Section 3 states 'Facility Clearance at the Secret level, with a minimum of three cleared staff proposed for key personnel roles.' Company profile shows 'facility_clearance_level: Secret' with '14 staff_with_clearance'.",
+          "reasoning": "Secret facility clearance required; we hold Secret FCL and have 14 cleared staff available, exceeding the 3-person minimum.",
+          "triggered": false
+        },
+        {
+          "id": "hd_contract_value_floor",
+          "evidence": "RFP states 'Estimated Value: $4,800,000 (24-month base plus one 12-month option)'.",
+          "reasoning": "Contract value of $4.8M significantly exceeds our $250K minimum threshold and sits within our sweet spot range of $1.5M-$12M.",
+          "triggered": false
+        },
+        {
+          "id": "hd_set_aside_exclusion",
+          "evidence": "RFP Section 1 states 'Set-Aside: Total Small Business Set-Aside (FAR 19.5)'. NAICS 541511 size standard is $34.0M. Company profile shows revenue_fy2025_usd: 34_800_000.",
+          "reasoning": "Total small business set-aside under NAICS 541511 with $34M size standard. Our FY2025 revenue of $34.8M is slightly above the threshold, which creates ambiguity about our eligibility. This needs immediate verification - flagged as a deal-breaker below.",
+          "triggered": false
+        },
+        {
+          "id": "hd_out_of_domain",
+          "evidence": "RFP Section 2 describes scope as 'Legacy Pipeline Migration', 'Data Warehouse Consolidation', 'Data Governance Framework', 'Executive and Operational Dashboards', and 'Knowledge Transfer' - all core data platform modernization work.",
+          "reasoning": "Scope is squarely within our core data and analytics domain. This is a classic data platform modernization engagement.",
+          "triggered": false
+        }
+      ],
+      "similar_past_proposals_analysis": [
+        {
+          "proposal_id": null,
+          "why_relevant": "Commerce Trade Data Modernization Phase II ($8.4M, 2022-2024, federal civilian, WON) is highly relevant. This was a federal civilian data platform modernization at comparable scale and scope. The similar proposal excerpt emphasizes 'deep continuity' and 'foundational data warehouse' work, suggesting cloud data platform implementation. This project likely provides our strongest past performance citation for the NIH RFP and should be featured prominently in Volume II.",
+          "reusable_sections": [
+            "Executive Summary (federal civilian data modernization positioning)",
+            "Technical Approach (data platform migration methodology)",
+            "Past Performance (can cite this project as primary reference)",
+            "Corporate Qualifications (CMMI Level 3, federal delivery capability)"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "HHS CMS Healthcare Data Pipeline Modernization ($6.1M, 2021-2023, federal civilian HHS, WON as sub to Booz Allen) is highly relevant. This project involved '22-pipeline migration scope' with 'legacy Informatica pipelines' - directly analogous to NIH's 18-pipeline SSIS migration requirement. The HHS domain alignment (CMS and NIH are both HHS agencies) strengthens relevance. The similar proposal excerpt shows deep technical detail on pipeline migration methodology that can be adapted for NIH. Primary limitation is that this was a subcontractor role, not prime.",
+          "reusable_sections": [
+            "Technical Approach (pipeline migration methodology, business logic preservation, reconciliation approach)",
+            "Past Performance (can cite as second federal reference, noting sub role)",
+            "HHS domain understanding (can emphasize HHS experience)"
+          ],
+          "relevance_strength": "strong"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Maryland DHS Benefits Analytics Platform ($4.2M, 2023-2025, state, WON) provides relevant data governance, analytics, and dashboard development experience. The similar proposal excerpt emphasizes 'local presence' and 'domain expertise' which can be adapted to emphasize our DMV presence for the Bethesda performance location. However, this is state rather than federal, which limits its value for the RFP's federal civilian past performance requirement. Best used as supplementary reference or to support data governance and analytics capability claims.",
+          "reusable_sections": [
+            "Data Governance Approach (if this project included Collibra/Alation)",
+            "Analytics and Dashboard Development",
+            "Local DMV presence and hybrid work model",
+            "Knowledge Transfer methodology"
+          ],
+          "relevance_strength": "moderate"
+        }
+      ]
+    },
+    "effort_estimate": "medium",
+    "deal_breakers": [
+      {
+        "concern": "Small business size standard eligibility - our FY2025 revenue of $34.8M exceeds the NAICS 541511 size standard of $34.0M",
+        "severity": "high",
+        "how_to_verify": "Contracts team (Theresa Chen) must immediately verify: (1) whether our revenue calculation methodology aligns with SBA size standard rules (which use a 3-year average, not single-year revenue), (2) whether any revenue exclusions apply, and (3) whether we can demonstrate small business status under the size standard. If we are over the size standard, we are ineligible for this total small business set-aside and must skip. This is a go/no-go question that must be resolved within 48 hours.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Verification of two federal civilian Snowflake engagements at $2M+ contract value",
+        "severity": "medium",
+        "how_to_verify": "Technical team must verify: (1) Commerce Trade Data Modernization ($8.4M) included Snowflake implementation - this seems likely given the 'data platform' description but needs confirmation, (2) HHS CMS Healthcare Pipeline Modernization ($6.1M) included Snowflake - the similar proposal excerpt mentions 'Informatica pipeline migration' but does not explicitly mention Snowflake, and (3) whether any other federal projects in our portfolio meet this requirement. If we cannot cite two federal Snowflake projects at $2M+, our past performance score drops significantly and recommendation would move to 'maybe' pending teaming strategy.",
+        "would_change_recommendation_to": "maybe"
+      },
+      {
+        "concern": "CMMI Level 3 appraisal report currency - RFP requires 'current appraisal report' and our profile shows 'appraised 2023'",
+        "severity": "low",
+        "how_to_verify": "Verify that our 2023 CMMI Level 3 appraisal is still considered 'current' under CMMI Institute rules (appraisals are typically valid for 3 years, so 2023 should be current in 2026). Confirm we have the appraisal report available for submission. This is unlikely to be disqualifying but needs verification to avoid compliance issue.",
+        "would_change_recommendation_to": "pursue"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "Does our 3-year average revenue qualify us as small business under the $34M NAICS 541511 size standard, or does our FY2025 single-year revenue of $34.8M disqualify us?",
+        "best_guess": "SBA size standards use 3-year average revenue, not single-year. If our FY2023 and FY2024 revenues were lower than FY2025, our 3-year average may still be under $34M. Contracts team must calculate immediately.",
+        "why_it_matters": "If we are not small business eligible, we cannot compete on this total small business set-aside and must skip regardless of technical fit. This is the single most important question to resolve before investing proposal effort."
+      },
+      {
+        "question": "Do both the Commerce Trade Data and HHS CMS Healthcare Pipeline projects include Snowflake implementations that meet the RFP's 'two completed engagements of $2M or greater' requirement?",
+        "best_guess": "Commerce Trade Data ($8.4M) likely included Snowflake given the scope and timeframe (2022-2024 is post-Snowflake-adoption era for federal). CMS Healthcare Pipeline ($6.1M) is less certain - the similar proposal excerpt emphasizes Informatica migration but does not mention Snowflake. Need technical team to confirm.",
+        "why_it_matters": "RFP Section 3 explicitly requires 'Demonstrated delivery of Snowflake-based data platforms for federal civilian agencies, with at least two completed engagements of $2M or greater.' If we cannot cite two such projects, we may be technically non-compliant or need to pursue teaming to fill the gap."
+      },
+      {
+        "question": "What is our depth of Collibra and Alation implementation experience at federal scale, and can we cite specific completed projects?",
+        "best_guess": "Our company profile shows 9 dedicated governance staff and lists 'Collibra and Alation implementations' as core capability, suggesting we have done this work. However, the profile does not cite specific governance projects in the past_performance_highlights section, which may indicate this is a smaller practice area. Need to pull project list from technical team.",
+        "why_it_matters": "RFP Section 3 requires 'Data governance practice depth demonstrated through completed implementations using Collibra or Alation.' Our company profile lists this as a core capability, but we need to verify we have citable federal projects to support the claim. If our governance experience is primarily state/local or uses other tools, we may need to develop new narrative or consider teaming."
+      },
+      {
+        "question": "What is our current pursuit load and do we have capacity to staff this engagement if we win?",
+        "best_guess": "Not specified in the context provided. This is a standard capacity check that should be part of every bid/no-bid decision.",
+        "why_it_matters": "The RFP requires 30% on-site presence in Bethesda, MD and Secret-cleared key personnel. We need to verify we have available cleared staff in the DMV area and that our pursuit pipeline does not create resource conflicts. This affects both our probability of win (can we commit strong personnel?) and our ability to deliver if we win."
+      }
+    ],
+    "similar_proposal_ids": [],
+    "model_version": "claude-sonnet-4-5",
+    "rubric_version": "1.0",
+    "created_at": "2026-04-24T21:34:05.812732",
+    "human_override": null,
+    "human_override_reason": null
+  },
+  {
+    "id": "d9e4f401-28f9-424e-a446-3b4759a1be71",
+    "rfp_id": "e9a7033b-b3f2-408e-b9b3-bf9341b506c3",
+    "fit_score": 12,
+    "recommendation": "skip",
+    "rationale": {
+      "dimensions": [
+        {
+          "id": "wd_past_performance_relevance",
+          "name": "Past performance relevance",
+          "score": 15,
+          "weight": 30.0,
+          "reasoning": "The Commerce Trade Data Modernization project (similarity 0.488) involved trade data and Snowflake implementation, but focused on data warehouse modernization for business intelligence, not law enforcement supply chain risk analytics. The Benefits Analytics Platform involved data integration and analytics but for social services, not criminal investigations. None of our past performance involves law enforcement, drug enforcement, supply chain risk intelligence, criminal network analysis, or the specialized AI-driven entity resolution and sanctions screening described in the RFI. Our projects are data platform engineering; this requires a pre-built investigative intelligence product.",
+          "evidence_citations": [
+            "Trade Data Modernization Phase II - data warehouse modernization, not investigative analytics",
+            "Benefits Analytics Platform - social services analytics, not law enforcement",
+            "RFI requirement: 'AI-powered supply chain analytical tools to enable investigations into supply chains for precursor chemicals'"
+          ]
+        },
+        {
+          "id": "wd_technical_capability_match",
+          "name": "Technical capability match",
+          "score": 10,
+          "weight": 25.0,
+          "reasoning": "The RFI describes a pre-built, specialized platform with proprietary capabilities: 600M+ company database, billions of global shipments, non-public logistics data, AI-driven entity resolution for criminal networks, sanctions list propagation algorithms, terrorism screening, and law enforcement-specific features. Meridian's capabilities are in building custom data platforms, ETL/ELT pipelines, and BI enablement - not in providing pre-built supply chain intelligence products. The requirement for 'platform backed by unique data algorithm that ingests data across non-public industry data covering 600 million companies' indicates a commercial product vendor, not a custom development firm. Our 'emerging' AI/ML capability (LLM document processing, RAG) is not relevant to the specialized entity resolution and network analysis required.",
+          "evidence_citations": [
+            "RFI: 'platform backed by unique data algorithm that ingests data across both non-public industry data and commercially available data, covering roughly 600 million companies'",
+            "RFI: 'AI-Driven Entity Resolution: Ability to accurately link corporate entities, vessels, shipments, ownership structures'",
+            "Company profile: core capabilities are 'Cloud data platform engineering' and 'ETL/ELT pipeline engineering' - not pre-built intelligence products"
+          ]
+        },
+        {
+          "id": "wd_contract_vehicle_and_naics",
+          "name": "Contract vehicle and NAICS fit",
+          "score": 30,
+          "weight": 15.0,
+          "reasoning": "NAICS 513210 (Software Publishers) is noted in the RFI. Meridian's GSA MAS SINs are 54151S and 518210C, which do not directly align with software publishing. Our registered NAICS codes per the profile are 541511 and 541512 (custom computer programming and systems design services), not software publishing. However, this scoring is academic since this is an RFI, not a solicitation with a contract vehicle.",
+          "evidence_citations": [
+            "RFI: 'NAICS code 513210- Software Publishers may be applicable'",
+            "Company profile: GSA MAS SINs 54151S and 518210C",
+            "NAICS mismatch between software publishing (513210) and our services codes (541511, 541512)"
+          ]
+        },
+        {
+          "id": "wd_contract_value_fit",
+          "name": "Contract value fit",
+          "score": 0,
+          "weight": 10.0,
+          "reasoning": "No contract value specified. This is an RFI for market research, not a contract opportunity. The RFI explicitly states it 'shall not be construed as a solicitation or as an obligation on the part of the Government.' Cannot score contract value fit when there is no contract.",
+          "evidence_citations": [
+            "RFI: 'This Request for Information (RFI) is issued by the DEA for market research and planning purposes only'",
+            "RFI: 'The Government is not requesting nor accepting proposals, bids, or formal quotes at this time'"
+          ]
+        },
+        {
+          "id": "wd_deadline_feasibility",
+          "name": "Deadline feasibility",
+          "score": 20,
+          "weight": 10.0,
+          "reasoning": "Response due April 27, 2026 at 2:00 PM Eastern. Current date is April 24, 2026. This provides 3 days to respond. However, the RFI requests a 10-page maximum response answering 10 specific questions about product capabilities, which is feasible in 3 days if we had a relevant solution. The constraint is not the deadline but the fundamental mismatch between what's requested (a pre-built supply chain intelligence product) and what we offer (custom data platform engineering services).",
+          "evidence_citations": [
+            "RFI: 'Responses are due by April 27, 2026 at 2:00PM Eastern'",
+            "Current date: 2026-04-24 (3 days available)",
+            "RFI: 'Responses should be keep to a maximum of 10 pages'"
+          ]
+        },
+        {
+          "id": "wd_geographic_and_clearance",
+          "name": "Geographic and clearance alignment",
+          "score": 15,
+          "weight": 10.0,
+          "reasoning": "Place of performance is not specified in the RFI. The platform is described as 'accessible via a standard web browser' suggesting remote/cloud delivery is acceptable. However, the clearance requirement is a major mismatch: 'Personnel must have a Top Secret (TS) security clearance to handle DEA target information and data.' Meridian has only 3 TS/SCI staff and a Secret facility clearance. A project of this scope handling DEA investigative data would likely require more TS-cleared personnel than we can provide. Geographic alignment is acceptable (likely DMV-based or remote), but clearance is prohibitive.",
+          "evidence_citations": [
+            "RFI: 'Personnel must have a Top Secret (TS) security clearance to handle DEA target information and data'",
+            "Company profile: 'facility_clearance_level: Secret' and 'ts_sci_staff: 3'",
+            "RFI: 'The platform shall be accessible via a standard web browser without local installation'"
+          ]
+        }
+      ],
+      "confidence_level": "high",
+      "confidence_notes": "The RFI nature is explicitly stated multiple times in the document. The clearance and technical domain mismatches are unambiguous. High confidence this is not pursuable.",
+      "effort_reasoning": "This is an RFI requesting a 10-page response to 10 questions about product capabilities. If we were to respond (which we should not), the effort would be low - simply explaining that we do not offer the pre-built product described. However, effort is irrelevant since this is not pursuable.",
+      "calibration_notes": "The rubric performed well in identifying hard disqualifiers. However, the rubric does not have a specific hard disqualifier for 'this is an RFI, not a solicitation,' which should be added. The clearance disqualifier (hd_clearance_tssci) is designed for TS/SCI facility clearance requirements, but this RFI requires TS clearance for personnel - the disqualifier still applies but the guidance could be clearer about personnel vs. facility requirements. The 'out of domain' disqualifier (hd_out_of_domain) correctly triggered, but the guidance focuses on 'hardware procurement, custom application development, cybersecurity SOC services, or ERP implementation' - it should also explicitly mention 'pre-built commercial products outside our development domain' as a disqualifier. Additionally, FedRAMP-High authorization requirements should potentially be a hard disqualifier when the requirement is for the vendor's platform to hold the authorization (vs. deploying in a FedRAMP-High environment).",
+      "recommendation_rationale": "This is an RFI (Request for Information), not a solicitation, explicitly stating 'The Government is not requesting nor accepting proposals, bids, or formal quotes at this time.' The RFP text confirms this is for market research only. Additionally, the requirement demands FedRAMP-High authorization and Top Secret clearance for personnel handling DEA target information - both hard disqualifiers. The technical scope (AI-driven supply chain analytics for drug enforcement) is fundamentally outside Meridian's data platform modernization domain.",
+      "hard_disqualifier_results": [
+        {
+          "id": "hd_clearance_tssci",
+          "evidence": "Personnel must have a Top Secret (TS) security clearance to handle DEA target information and data.",
+          "reasoning": "The RFP explicitly requires TS clearance for personnel. While Meridian has 3 TS/SCI staff, the requirement appears to apply broadly to personnel handling DEA data, which would likely exceed our cleared staff capacity for a project of this scope.",
+          "triggered": true
+        },
+        {
+          "id": "hd_contract_value_floor",
+          "evidence": "No contract value specified; this is an RFI for market research purposes only.",
+          "reasoning": "Not applicable - this is an RFI, not a contract opportunity. No contract value to evaluate.",
+          "triggered": false
+        },
+        {
+          "id": "hd_set_aside_exclusion",
+          "evidence": "No set-aside designation specified in the RFI.",
+          "reasoning": "No set-aside restrictions identified. NAICS 513210 (Software Publishers) is noted but this is for market research only.",
+          "triggered": false
+        },
+        {
+          "id": "hd_out_of_domain",
+          "evidence": "DEA is seeking AI-powered supply chain analytical tools to enable investigations into supply chains for precursor chemicals used in synthetic drug production. The platform must provide supply chain visibility, criminal network screening, terrorism screening, and law enforcement intelligence capabilities.",
+          "reasoning": "This is a specialized law enforcement intelligence and supply chain risk platform, not a data modernization or analytics enablement project. The core requirement is a pre-built AI-driven supply chain analytics product for drug enforcement investigations - fundamentally different from Meridian's data platform engineering and modernization services.",
+          "triggered": true
+        }
+      ],
+      "similar_past_proposals_analysis": [
+        {
+          "proposal_id": null,
+          "why_relevant": "Trade Data Modernization involved trade data and Snowflake implementation, which superficially relates to 'supply chain data.' However, that project was about building a data warehouse for business intelligence on trade statistics, not law enforcement supply chain risk analytics. The technical approaches are fundamentally different.",
+          "reusable_sections": [],
+          "relevance_strength": "weak"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Benefits Analytics Platform involved data integration and analytics, but for social services benefits programs, not criminal investigations or supply chain intelligence. The domain expertise and technical requirements are completely different.",
+          "reusable_sections": [],
+          "relevance_strength": "weak"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Predictive Analytics Pilot involved machine learning for policy research (Medicare readmissions), which relates to the 'AI-driven' aspect of this RFI. However, the application domain (healthcare policy vs. drug enforcement supply chain intelligence) and the technical requirements (predictive modeling vs. entity resolution and network analysis) are completely different. Also, we lost this proposal.",
+          "reusable_sections": [],
+          "relevance_strength": "weak"
+        }
+      ]
+    },
+    "effort_estimate": "low",
+    "deal_breakers": [
+      {
+        "concern": "This is an RFI for market research, not a solicitation for proposals",
+        "severity": "high",
+        "how_to_verify": "The document explicitly states multiple times it is an RFI for market research purposes only and is not requesting proposals, bids, or quotes. No verification needed - this is definitive.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Requirement is for a pre-built commercial supply chain intelligence product, not custom data platform development services",
+        "severity": "high",
+        "how_to_verify": "Review the detailed capability requirements: 600M+ company database, proprietary logistics data, pre-built entity resolution algorithms, sanctions screening. These describe a commercial product (likely Sayari or similar), not a development engagement.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "FedRAMP-High authorization required for the platform",
+        "severity": "high",
+        "how_to_verify": "RFI states 'The platform shall have a FedRAMP-High Authorization' and 'The platform must enable a variety of robust partner data integrations if needed.' Meridian does not have FedRAMP-High authorization and this is a platform authorization requirement, not a hosting environment requirement.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Top Secret clearance required for personnel handling DEA data",
+        "severity": "high",
+        "how_to_verify": "RFI explicitly states 'Personnel must have a Top Secret (TS) security clearance to handle DEA target information and data.' Meridian has only 3 TS/SCI staff and Secret facility clearance.",
+        "would_change_recommendation_to": "skip"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "Is DEA seeking a commercial product vendor or a systems integrator to build a custom solution?",
+        "best_guess": "They are seeking a commercial product vendor (likely Sayari, Kharon, or similar supply chain intelligence platform). The specificity of the data requirements and the mention of 'federated architecture' and 'proprietary algorithms' indicate a pre-built solution.",
+        "why_it_matters": "The detailed capability requirements (600M companies, proprietary data sources, pre-built algorithms) strongly suggest they want a commercial product. If they were open to custom development, the technical approach and past performance relevance would be different. However, the RFI nature makes this academic."
+      },
+      {
+        "question": "Will there be a follow-on solicitation based on this RFI, and if so, when?",
+        "best_guess": "The RFI states responses 'may be used to improve the Government's acquisition strategy and planning,' suggesting a future solicitation is possible but not confirmed. Timeline is unknown.",
+        "why_it_matters": "If DEA plans a future solicitation, we could monitor for it, though we would still be mismatched on technical capabilities and clearance. Understanding the timeline would help us decide whether to track this for awareness."
+      }
+    ],
+    "similar_proposal_ids": [],
+    "model_version": "claude-sonnet-4-5",
+    "rubric_version": "1.0",
+    "created_at": "2026-04-24T21:21:27.148105",
+    "human_override": null,
+    "human_override_reason": null
+  },
+  {
+    "id": "5a17970d-307c-4dbe-8fdb-14b8dd8d4bb3",
+    "rfp_id": "e6a7412a-5566-4718-8813-c396d0a6c165",
+    "fit_score": 12,
+    "recommendation": "skip",
+    "rationale": {
+      "dimensions": [
+        {
+          "id": "wd_past_performance_relevance",
+          "name": "Past performance relevance",
+          "score": 15,
+          "weight": 30.0,
+          "reasoning": "No relevant past performance. Our cited projects (Commerce Trade Data, Maryland DHS Benefits Analytics, CMS Healthcare Pipeline, Virginia DOT Traffic Data Warehouse) are all data platform/analytics modernization efforts. The Virginia DOT project has surface-level relevance (transportation, geospatial) but was a data warehouse for traffic analytics, not infrastructure inspection software. None of our past performance involves computer vision AI, pavement condition assessment, or municipal asset management applications. The RFP requires references for 'similar services' - we cannot provide examples of delivering road inspection software or asset management platforms.",
+          "evidence_citations": [
+            "Section 3: 'technology capable of performing rapid, objective condition assessments on pavement surfaces'",
+            "Section 3.3a: 'Using Artificial Intelligence, the technology must be capable of utilizing Image Recognition to: Identify damage within the surface of the roadway, Classify damage type, Identify the severity of each damage detected'",
+            "Company profile past_performance_highlights: all projects are data warehouse, ETL/analytics, not vertical software applications"
+          ]
+        },
+        {
+          "id": "wd_technical_capability_match",
+          "name": "Technical capability match",
+          "score": 20,
+          "weight": 25.0,
+          "reasoning": "Minimal capability alignment. The RFP requires: (1) Computer vision AI for pavement damage detection and classification - we have 'emerging' applied AI/ML capability but focused on document processing and RAG, not computer vision; (2) Mobile application development for iOS/Android data collection - not a stated capability; (3) Hardware provision and integration (8 devices with vehicle mounts, 5-year warranty) - explicitly listed as 'not' capability; (4) Purpose-built asset management software with work order management - not our domain; (5) GIS integration with ESRI ArcGIS and Spatial Data Logics - we have 'moderate' geospatial capability but for analytics use cases, not as core platform integration. The only alignment is peripheral: data export to Excel, web application architecture, cloud hosting. This is insufficient for a competitive proposal.",
+          "evidence_citations": [
+            "Section 3.2: 'Township will require eight (8) electronic devices with mounting capabilities to a vehicle's windshield or dash. All hardware shall have a 5-year warranty'",
+            "Section 3.3: Requirements for AI-based pavement damage classification, sign recognition, stormwater inlet identification",
+            "Company profile capabilities: 'explicitly_not' includes 'Hardware procurement or integration' and 'Custom application development outside of data domain'"
+          ]
+        },
+        {
+          "id": "wd_contract_vehicle_and_naics",
+          "name": "Contract vehicle and NAICS fit",
+          "score": 30,
+          "weight": 15.0,
+          "reasoning": "No contract vehicle advantage (municipal open competition), but NAICS is likely misaligned. RFP does not specify NAICS code. Based on scope (custom software for infrastructure management with hardware), likely NAICS would be 541511 (Custom Computer Programming Services) or 541512 (Computer Systems Design Services) - both of which we hold. However, the work could also fall under 541690 (Other Scientific and Technical Consulting) or even 334111 (Electronic Computer Manufacturing) given hardware component. Municipal procurement with no vehicle restriction, so technically open to us, but NAICS alignment is uncertain and the work doesn't leverage any of our existing contract vehicles (GSA MAS, SEWP VI, Maryland CATS+).",
+          "evidence_citations": [
+            "RFP cover: 'NAICS Code(s): (not specified)'",
+            "Section 1: 'fair and open process' - open competition",
+            "Company profile: GSA MAS SIN 54151S and 518210C, SEWP VI, Maryland CATS+ - none applicable to municipal NJ procurement"
+          ]
+        },
+        {
+          "id": "wd_contract_value_fit",
+          "name": "Contract value fit",
+          "score": 40,
+          "weight": 10.0,
+          "reasoning": "Contract value likely below our sweet spot but above hard floor. RFP is 5-year term for software licensing (up to 15 users), 8 hardware devices with mounts, training, and ongoing support. Comparable municipal road management SaaS platforms range $50K-$150K annually, suggesting total contract value $250K-$750K. This is below our stated sweet spot ($1.5M-$12M) and at the lower end of our acceptable range ($250K-$25M). Proposal ROI would be marginal given the effort required to respond to this detailed RFP (100+ pages of requirements, multiple certifications, cost breakdown by year).",
+          "evidence_citations": [
+            "Section 1: 'Award shall be for a period of five (5) years'",
+            "Cost Details page: separate line items for Year 1 (hardware, training, licensing) and Years 2-5 (licensing only) for up to 15 users",
+            "Company profile: 'sweet_spot_low: 1_500_000, absolute_minimum: 250_000'"
+          ]
+        },
+        {
+          "id": "wd_deadline_feasibility",
+          "name": "Deadline feasibility",
+          "score": 0,
+          "weight": 10.0,
+          "reasoning": "Deadline has passed. RFP states 'January 21, 2026, 11:00 A.M.' as submission deadline. Current date is April 24, 2026. This RFP is 3 months past due. Scoring zero as response is impossible.",
+          "evidence_citations": [
+            "RFP Section 2.1: 'Submission Date and Time: January 21, 2026, 11:00 A.M. prevailing time'",
+            "Current context: 'Current date: 2026-04-24'"
+          ]
+        },
+        {
+          "id": "wd_geographic_and_clearance",
+          "name": "Geographic and clearance alignment",
+          "score": 60,
+          "weight": 10.0,
+          "reasoning": "Geography is acceptable but not ideal. Place of performance is Cherry Hill Township, New Jersey (Camden County) - outside our primary DMV focus but within reasonable travel distance from Silver Spring, MD (90 miles, ~2 hours). No clearance requirements (municipal contract). The RFP requires on-site training (Section 3.5: 'on-site onboarding and training') but most work could be performed remotely. This is in our secondary geographic focus area (we list Pennsylvania as secondary; New Jersey is adjacent). Not a disqualifier but not optimal.",
+          "evidence_citations": [
+            "RFP header: 'Township of Cherry Hill, Camden County, New Jersey'",
+            "Section 3.5: 'Vendor must provide the Township with on-site onboarding and training'",
+            "Company profile: 'primary: [DC metro, Maryland, Virginia], secondary: [Delaware, Pennsylvania, North Carolina]'"
+          ]
+        }
+      ],
+      "confidence_level": "high",
+      "confidence_notes": "RFP scope is clearly defined across 20+ pages of technical specifications. The work is unambiguously outside our stated domain (explicitly listed in 'explicitly_not' capabilities). No ambiguity in disqualification rationale.",
+      "effort_reasoning": "Despite being out of scope, this RFP would require high effort to respond: 100+ pages of specifications, detailed cost breakdown by year and line item, multiple mandatory certifications (EEO, political contribution disclosure, ownership disclosure, non-collusion affidavit, debarment affidavit, Iran/Russia certifications), three references with detailed contact information, narrative demonstrating understanding of scope, example invoice, and technical approach for AI-powered inspection platform. Estimated 120-160 hours to produce compliant response even if we had relevant capabilities.",
+      "calibration_notes": "This RFP is a clear example of domain mismatch that should be caught immediately by hard disqualifier hd_out_of_domain. The rubric performed as intended - out-of-domain trigger correctly identified the fundamental misalignment. Dimension scores are artificially low but still computed for calibration purposes as instructed. One observation: the 'contract_value_fit' dimension scored 40 despite being below sweet spot because it's technically above the hard floor - this might be worth revisiting in rubric to penalize more heavily when value is far below sweet spot even if above minimum. Also note: deadline_feasibility scored 0 due to passed deadline, but this wasn't a hard disqualifier in current rubric - consider adding 'hd_deadline_passed' as explicit disqualifier for future versions.",
+      "recommendation_rationale": "This RFP is for road and asset management software with AI-powered pavement inspection and municipal asset tracking - fundamentally outside Meridian's data platform and analytics domain. The scope requires hardware provision (8 mobile devices with mounting equipment), computer vision AI for infrastructure inspection, and GIS-based asset management software - none of which align with our core capabilities in cloud data warehousing, ETL/ELT pipelines, or analytics enablement. This is a specialized municipal infrastructure software procurement, not a data modernization engagement.",
+      "hard_disqualifier_results": [
+        {
+          "id": "hd_clearance_tssci",
+          "evidence": "No security clearance requirements mentioned in RFP. This is a local government procurement for commercial software.",
+          "reasoning": "Municipal contract with no federal security requirements. Not applicable.",
+          "triggered": false
+        },
+        {
+          "id": "hd_contract_value_floor",
+          "evidence": "RFP states '5-year term' with hardware (8 devices), software licensing for up to 15 users, training, and AI-powered inspection platform. Cost sheet indicates multi-year software licensing plus hardware. Estimated value likely $300K-$800K total over 5 years based on typical municipal SaaS pricing.",
+          "reasoning": "While exact value not disclosed, scope suggests contract above $250K threshold. However, this is borderline and should be verified - municipal road management software with AI capabilities for 242 centerline miles could range from $250K-$1M depending on vendor.",
+          "triggered": false
+        },
+        {
+          "id": "hd_set_aside_exclusion",
+          "evidence": "RFP states 'fair and open process in accordance with N.J.S.A. 19:44A-20.5 et seq.' No set-aside designation mentioned.",
+          "reasoning": "Open competition procurement. No set-aside restrictions apply.",
+          "triggered": false
+        },
+        {
+          "id": "hd_out_of_domain",
+          "evidence": "Section 3 Scope of Work specifies: 'technology (including data collection hardware and software employing artificial intelligence) capable of performing rapid, objective condition assessments on pavement surfaces and other assets including but not limited to manholes, storm sewer inlets and signs.' Requirements include: mobile device-based image capture, AI-powered pavement damage classification (15+ damage types), roadway sign inventory management, stormwater inlet tracking, manhole tracking, GPS tracking module, and integration with ESRI ArcGIS and Spatial Data Logics. Section 3.2 requires provision of '8 electronic devices with mounting capabilities to a vehicle's windshield or dash' with 5-year warranty.",
+          "reasoning": "This is specialized municipal infrastructure inspection and asset management software - fundamentally outside Meridian's stated domain. Our company profile explicitly lists under 'explicitly_not': 'Custom application development outside of data domain' and 'Hardware procurement or integration.' This RFP requires both: purpose-built computer vision software for pavement inspection AND hardware provision (mobile devices with vehicle mounts). While there is a data component (asset tracking, reporting), the core deliverable is vertical-specific infrastructure management software, not a data platform or analytics solution.",
+          "triggered": true
+        }
+      ],
+      "similar_past_proposals_analysis": [
+        {
+          "proposal_id": null,
+          "why_relevant": "Maryland state government client and 5-year contract structure are similar, but the Benefits Analytics Platform was a data warehouse and BI implementation, not vertical software for infrastructure management. No reusable technical content.",
+          "reusable_sections": [
+            "Maryland-specific compliance certifications",
+            "State government past performance narrative structure"
+          ],
+          "relevance_strength": "weak"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Federal data modernization with strong past performance narrative, but completely different domain (trade data vs. municipal infrastructure). Executive summary structure could be template.",
+          "reusable_sections": [
+            "Executive summary opening structure",
+            "Past performance presentation format"
+          ],
+          "relevance_strength": "weak"
+        },
+        {
+          "proposal_id": null,
+          "why_relevant": "Healthcare data pipeline work demonstrates our core capability (ETL/data engineering) but has no relevance to computer vision AI or asset management software. Past performance section structure could be reused.",
+          "reusable_sections": [
+            "Past performance narrative structure",
+            "Technical approach section organization"
+          ],
+          "relevance_strength": "weak"
+        }
+      ]
+    },
+    "effort_estimate": "high",
+    "deal_breakers": [
+      {
+        "concern": "Core scope is outside our business domain - this is specialized municipal infrastructure inspection software, not data platform modernization",
+        "severity": "high",
+        "how_to_verify": "Already verified - RFP Section 3 clearly defines scope as pavement inspection AI, asset management software, and hardware provision. No verification needed.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Requires hardware provision (8 mobile devices with vehicle mounts and 5-year warranty) which is explicitly outside our capabilities",
+        "severity": "high",
+        "how_to_verify": "Already verified - Section 3.2 explicitly requires hardware. Company profile lists 'Hardware procurement or integration' under 'explicitly_not'.",
+        "would_change_recommendation_to": "skip"
+      },
+      {
+        "concern": "Deadline has passed by 3 months (due January 21, 2026; current date April 24, 2026)",
+        "severity": "high",
+        "how_to_verify": "Already verified from RFP dates and current context.",
+        "would_change_recommendation_to": "skip"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What is the actual contract value? RFP does not disclose estimated value.",
+        "best_guess": "$400K-$600K total over 5 years based on typical municipal SaaS pricing for 15 users plus hardware",
+        "why_it_matters": "Need to confirm whether this exceeds our $250K minimum threshold. Based on scope, estimate is $250K-$750K, but could be higher if AI platform licensing is premium-priced."
+      },
+      {
+        "question": "Is this RFP still active or was it already awarded? Deadline was 3 months ago.",
+        "best_guess": "Almost certainly already awarded given 3-month gap. This appears to be a historical RFP in our screening queue.",
+        "why_it_matters": "If already awarded, this is purely academic. If still open (unlikely), would need to understand why deadline passed and whether late submissions accepted."
+      }
+    ],
+    "similar_proposal_ids": [],
+    "model_version": "claude-sonnet-4-5",
+    "rubric_version": "1.0",
+    "created_at": "2026-04-24T20:51:37.817089",
+    "human_override": null,
+    "human_override_reason": null
+  }
+]

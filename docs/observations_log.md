@@ -37,6 +37,24 @@ as a "the rubric does something smarter than title-matching" demo moment.
 
 ---
 
+### 2026-04-24 — Rubric editor loses YAML comments on save  ⏳ OPEN
+
+`PUT /rubric` (used by the Streamlit Rubric Editor) re-serializes the
+rubric dict with `yaml.safe_dump`, which doesn't preserve comments.
+`config/fit_rubric.yaml` ships with a substantial comment block at
+the top (calibration notes + model notes about why the rubric is
+opinionated where it is). Saving any edit through the UI strips it.
+
+**Mitigation for now:** the content team should edit `fit_rubric.yaml`
+directly when they want to change the comment-block content, and use
+the UI for value-only edits (weights, scoring guidance text already
+captured in field values, hard-disqualifier toggles).
+
+**Better fix for v2:** swap `yaml` → `ruamel.yaml` in the loader/saver,
+which preserves comments + key order. Small dependency add. Not done
+in this commit because demo doesn't depend on it; flagged so the
+content team isn't surprised when their inline notes vanish on save.
+
 ### 2026-04-24 — Phase 4 retrospective (themes for content/demo)
 
 **Calibration decisions applied empirically, not theoretically (all ✅ landed in code):**

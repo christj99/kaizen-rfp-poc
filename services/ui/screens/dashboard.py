@@ -93,7 +93,7 @@ def render() -> None:
         empty_state(
             "No new RFPs this week",
             "Send an email to the demo inbox or run a SAM.gov poll to get started.",
-            icon=":material/inbox:",
+            icon="📥",
         )
     else:
         bits = " · ".join(
@@ -119,7 +119,7 @@ def render() -> None:
         empty_state(
             "Inbox zero — nothing needs manual review.",
             "RFPs that couldn't be ingested cleanly (e.g. SAM.gov description fetch failed) land here.",
-            icon=":material/check_circle:",
+            icon="✅",
         )
     else:
         for r in needs[:8]:
@@ -159,7 +159,7 @@ def render() -> None:
     visible = visible[:30]
 
     if not visible:
-        empty_state("No RFPs match the current filters.", icon=":material/filter_alt_off:")
+        empty_state("No RFPs match the current filters.", icon="🔎")
     else:
         # Render as an HTML table — gives us color badges in cells, click-to-detail.
         rows_html: List[str] = []
@@ -215,7 +215,7 @@ def render() -> None:
     # --- 5. Recent activity ---
     section_divider("Recent activity")
     if not audit:
-        empty_state("No audit entries yet.", icon=":material/history:")
+        empty_state("No audit entries yet.", icon="🕓")
     else:
         for a in audit[:10]:
             d = a.get("details") or {}

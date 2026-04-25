@@ -32,8 +32,14 @@ def api_health_banner() -> bool:
         return False
 
 
-def empty_state(title: str, hint: str = "", icon: str = ":mailbox_with_no_mail:") -> None:
-    """Friendly empty-state block. Avoids blank-screen demo killers."""
+def empty_state(title: str, hint: str = "", icon: str = "📭") -> None:
+    """Friendly empty-state block. Avoids blank-screen demo killers.
+
+    ``icon`` should be a plain Unicode emoji — the surrounding wrapper is
+    rendered via ``unsafe_allow_html``, where Streamlit doesn't parse
+    ``:material/...:`` shortcodes (those only work in widget labels,
+    st.tabs, and st.markdown without unsafe_allow_html).
+    """
     st.markdown(
         f"<div style='padding:2.5rem 1rem;text-align:center;color:#64748b;'>"
         f"<div style='font-size:2rem;margin-bottom:0.5rem;'>{icon}</div>"
