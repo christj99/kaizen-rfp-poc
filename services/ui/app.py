@@ -47,12 +47,15 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+# url_path on every Page is required because each module exports a callable
+# named ``render`` — without it, st.navigation's pathname inference collapses
+# every page to the same URL and raises StreamlitAPIException.
 nav = st.navigation([
-    st.Page(page_dashboard.render,       title="Dashboard",      icon=":material/dashboard:",        default=True),
-    st.Page(page_rfp_detail.render,      title="RFP Detail",     icon=":material/description:"),
-    st.Page(page_past_proposals.render,  title="Past Proposals", icon=":material/folder_open:"),
-    st.Page(page_rubric_editor.render,   title="Rubric",         icon=":material/tune:"),
-    st.Page(page_settings.render,        title="Settings",       icon=":material/settings:"),
-    st.Page(page_chat.render,            title="Chat",           icon=":material/chat:"),
+    st.Page(page_dashboard.render,       title="Dashboard",      icon=":material/dashboard:",   url_path="dashboard",      default=True),
+    st.Page(page_rfp_detail.render,      title="RFP Detail",     icon=":material/description:", url_path="rfp"),
+    st.Page(page_past_proposals.render,  title="Past Proposals", icon=":material/folder_open:", url_path="past_proposals"),
+    st.Page(page_rubric_editor.render,   title="Rubric",         icon=":material/tune:",        url_path="rubric"),
+    st.Page(page_settings.render,        title="Settings",       icon=":material/settings:",    url_path="settings"),
+    st.Page(page_chat.render,            title="Chat",           icon=":material/chat:",        url_path="chat"),
 ])
 nav.run()
