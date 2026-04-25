@@ -126,6 +126,45 @@ def _insert_drafts(drafts: List[Dict[str, Any]]) -> None:
             )
 
 
+def _insert_draft_jobs(jobs: List[Dict[str, Any]]) -> None:
+    with db_cursor() as cur:
+        for j in jobs:
+            cur.execute(
+                """
+                INSERT INTO draft_jobs
+                    (id, rfp_id, status, started_at, completed_at,
+                     draft_id, error_message, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    j["id"], j["rfp_id"], j.get("status"),
+                    _parse_iso(j.get("started_at")),
+                    _parse_iso(j.get("completed_at")),
+                    j.get("draft_id"),
+                    j.get("error_message"),
+                    _parse_iso(j.get("created_at")) or datetime.utcnow(),
+                ),
+            )
+
+
+def _insert_audit(entries: List[Dict[str, Any]]) -> None:
+    with db_cursor() as cur:
+        for a in entries:
+            cur.execute(
+                """
+                INSERT INTO audit_log
+                    (id, entity_type, entity_id, action, actor, details, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+                """,
+                (
+                    a["id"], a.get("entity_type"), a.get("entity_id"),
+                    a["action"], a.get("actor") or "system",
+                    json.dumps(a.get("details") or {}),
+                    _parse_iso(a.get("created_at")) or datetime.utcnow(),
+                ),
+            )
+
+
 def _check_past_proposals() -> int:
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM past_proposals")
@@ -143,9 +182,14 @@ def main() -> None:
             f"Run scripts/build_seed_fixtures.py first."
         )
 
+    draft_jobs_path = SEED_DIR / "draft_jobs.json"
+    audit_log_path = SEED_DIR / "audit_log.json"
+
     rfps = json.loads(rfps_path.read_text(encoding="utf-8"))
     screenings = json.loads(screenings_path.read_text(encoding="utf-8")) if screenings_path.exists() else []
     drafts = json.loads(drafts_path.read_text(encoding="utf-8")) if drafts_path.exists() else []
+    draft_jobs = json.loads(draft_jobs_path.read_text(encoding="utf-8")) if draft_jobs_path.exists() else []
+    audit_entries = json.loads(audit_log_path.read_text(encoding="utf-8")) if audit_log_path.exists() else []
 
     print(f"[seed] truncating user tables ...")
     _truncate_user_tables()
@@ -156,6 +200,10 @@ def main() -> None:
     _insert_screenings(screenings)
     print(f"[seed] inserting {len(drafts)} drafts ...")
     _insert_drafts(drafts)
+    print(f"[seed] inserting {len(draft_jobs)} draft_jobs ...")
+    _insert_draft_jobs(draft_jobs)
+    print(f"[seed] inserting {len(audit_entries)} audit entries ...")
+    _insert_audit(audit_entries)
 
     pp_count = _check_past_proposals()
     if pp_count == 0:

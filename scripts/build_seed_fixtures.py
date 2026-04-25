@@ -93,6 +93,12 @@ def capture_from_db() -> Dict[str, List[Dict[str, Any]]]:
     rfps: List[Dict[str, Any]] = []
     screenings: List[Dict[str, Any]] = []
     drafts: List[Dict[str, Any]] = []
+    draft_jobs: List[Dict[str, Any]] = []
+    audit_entries: List[Dict[str, Any]] = []
+
+    captured_ids: List[str] = []
+    captured_screening_ids: List[str] = []
+    captured_draft_ids: List[str] = []
 
     with db_cursor() as cur:
         for pick in CAPTURE_PICKS:
@@ -109,6 +115,7 @@ def capture_from_db() -> Dict[str, List[Dict[str, Any]]]:
                 continue
             rfps.append(_row_to_jsonable(row))
             rfp_id = row["id"]
+            captured_ids.append(str(rfp_id))
 
             cur.execute(
                 "SELECT * FROM screenings WHERE rfp_id = %s ORDER BY created_at DESC LIMIT 1",
@@ -117,6 +124,7 @@ def capture_from_db() -> Dict[str, List[Dict[str, Any]]]:
             sc = cur.fetchone()
             if sc:
                 screenings.append(_row_to_jsonable(sc))
+                captured_screening_ids.append(str(sc["id"]))
 
             cur.execute(
                 "SELECT * FROM drafts WHERE rfp_id = %s ORDER BY created_at DESC LIMIT 1",
@@ -125,8 +133,42 @@ def capture_from_db() -> Dict[str, List[Dict[str, Any]]]:
             dr = cur.fetchone()
             if dr:
                 drafts.append(_row_to_jsonable(dr))
+                captured_draft_ids.append(str(dr["id"]))
 
-    return {"rfps": rfps, "screenings": screenings, "drafts": drafts}
+        # Capture draft_jobs that produced the captured drafts (terminal state only).
+        if captured_draft_ids:
+            cur.execute(
+                "SELECT * FROM draft_jobs WHERE draft_id = ANY(%s::uuid[])",
+                (captured_draft_ids,),
+            )
+            for j in cur.fetchall():
+                draft_jobs.append(_row_to_jsonable(j))
+
+        # Capture audit-log entries for the captured RFPs + their screenings + drafts +
+        # jobs, so the demo Audit pages have substance from t=0.
+        related_ids = (
+            captured_ids
+            + captured_screening_ids
+            + captured_draft_ids
+            + [j["id"] for j in draft_jobs]
+        )
+        if related_ids:
+            cur.execute(
+                """SELECT * FROM audit_log
+                    WHERE entity_id = ANY(%s::uuid[])
+                    ORDER BY created_at ASC""",
+                (related_ids,),
+            )
+            for a in cur.fetchall():
+                audit_entries.append(_row_to_jsonable(a))
+
+    return {
+        "rfps": rfps,
+        "screenings": screenings,
+        "drafts": drafts,
+        "draft_jobs": draft_jobs,
+        "audit_log": audit_entries,
+    }
 
 
 # ---------- synthetic content -----------------------------------------
@@ -303,26 +345,178 @@ def synthetic_rfps() -> List[Dict[str, Any]]:
     ]
 
 
+def synthetic_draft_jobs_and_audit(
+    rfps: List[Dict[str, Any]],
+    screenings: List[Dict[str, Any]],
+    drafts: List[Dict[str, Any]],
+) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """For each captured draft, synthesize a matching ``completed`` draft_job.
+    For every RFP / screening / draft, synthesize the audit_log entries that
+    would have been written during the live flow (discovery_ingest,
+    screen_rfp, draft_proposal, draft_job state transitions).
+
+    Output: (draft_jobs, audit_entries). Lets the SQL Console's
+    "Audit trail for the most recent RFP" and "Draft jobs and durations"
+    example queries return non-empty results from t=0.
+    """
+    now = datetime.now(timezone.utc)
+    draft_jobs: List[Dict[str, Any]] = []
+    audit_entries: List[Dict[str, Any]] = []
+
+    rfps_by_id = {r["id"]: r for r in rfps}
+    drafts_by_rfp = {d["rfp_id"]: d for d in drafts}
+    screenings_by_rfp = {s["rfp_id"]: s for s in screenings}
+
+    for r in rfps:
+        rfp_id = r["id"]
+        # discovery_ingest entry per RFP (pre-dates everything else)
+        ingested_at = r.get("received_at")
+        try:
+            ingest_dt = datetime.fromisoformat(ingested_at) if ingested_at else now - timedelta(hours=24)
+        except Exception:
+            ingest_dt = now - timedelta(hours=24)
+        audit_entries.append({
+            "id": str(uuid4()),
+            "entity_type": "rfp",
+            "entity_id": rfp_id,
+            "action": "discovery_ingest" if r.get("source_type") != "manual_upload" else "rfp_ingested",
+            "actor": "system",
+            "details": {
+                "adapter_name": (
+                    "demo_gmail" if r.get("source_type") == "email"
+                    else "sam_gov_primary" if r.get("source_type") == "sam_gov"
+                    else r.get("source_type")
+                ),
+                "source_identifier": (r.get("source_metadata") or {}).get("imap_uid")
+                                     or r.get("external_id") or rfp_id,
+                "was_new": True,
+                "title": r.get("title"),
+                "status": r.get("status"),
+            },
+            "created_at": ingest_dt.isoformat(),
+        })
+
+        # screen_rfp + (for in_draft) the draft_job lifecycle
+        sc = screenings_by_rfp.get(rfp_id)
+        if sc:
+            sc_at = sc.get("created_at")
+            try:
+                sc_dt = datetime.fromisoformat(sc_at) if sc_at else ingest_dt + timedelta(minutes=2)
+            except Exception:
+                sc_dt = ingest_dt + timedelta(minutes=2)
+            audit_entries.append({
+                "id": str(uuid4()),
+                "entity_type": "rfp",
+                "entity_id": rfp_id,
+                "action": "screen_rfp",
+                "actor": "claude",
+                "details": {
+                    "model": sc.get("model_version") or "claude-sonnet-4-5",
+                    "input_tokens": 28000, "output_tokens": 4200,
+                    "schema_enforced": True,
+                },
+                "created_at": sc_dt.isoformat(),
+            })
+
+        d = drafts_by_rfp.get(rfp_id)
+        if d:
+            d_at = d.get("created_at")
+            try:
+                d_dt = datetime.fromisoformat(d_at) if d_at else now
+            except Exception:
+                d_dt = now
+            # ~5 min before completion
+            queued_dt = d_dt - timedelta(minutes=5, seconds=20)
+            running_dt = queued_dt + timedelta(milliseconds=80)
+            completed_dt = d_dt + timedelta(milliseconds=120)
+            job_id = str(uuid4())
+            draft_jobs.append({
+                "id": job_id,
+                "rfp_id": rfp_id,
+                "status": "completed",
+                "started_at": running_dt.isoformat(),
+                "completed_at": completed_dt.isoformat(),
+                "draft_id": d["id"],
+                "error_message": None,
+                "created_at": queued_dt.isoformat(),
+            })
+            audit_entries.append({
+                "id": str(uuid4()), "entity_type": "draft_job", "entity_id": job_id,
+                "action": "queued", "actor": "system",
+                "details": {"rfp_id": rfp_id, "mode": "full_auto"},
+                "created_at": queued_dt.isoformat(),
+            })
+            audit_entries.append({
+                "id": str(uuid4()), "entity_type": "draft_job", "entity_id": job_id,
+                "action": "running", "actor": "system",
+                "details": {"rfp_id": rfp_id},
+                "created_at": running_dt.isoformat(),
+            })
+            audit_entries.append({
+                "id": str(uuid4()), "entity_type": "rfp", "entity_id": rfp_id,
+                "action": "draft_proposal", "actor": "claude",
+                "details": {
+                    "model": "claude-sonnet-4-5",
+                    "input_tokens": 42000, "output_tokens": 11500,
+                    "schema_enforced": True,
+                },
+                "created_at": d_dt.isoformat(),
+            })
+            audit_entries.append({
+                "id": str(uuid4()), "entity_type": "draft_job", "entity_id": job_id,
+                "action": "completed", "actor": "system",
+                "details": {
+                    "rfp_id": rfp_id, "draft_id": d["id"],
+                    "duration_seconds": (completed_dt - running_dt).total_seconds(),
+                },
+                "created_at": completed_dt.isoformat(),
+            })
+
+    audit_entries.sort(key=lambda a: a["created_at"])
+    return draft_jobs, audit_entries
+
+
 # ---------- main ------------------------------------------------------
 
 def main() -> None:
     captured = capture_from_db()
     print(f"[capture] {len(captured['rfps'])} rfps, "
           f"{len(captured['screenings'])} screenings, "
-          f"{len(captured['drafts'])} drafts")
+          f"{len(captured['drafts'])} drafts, "
+          f"{len(captured['draft_jobs'])} draft_jobs, "
+          f"{len(captured['audit_log'])} audit entries")
 
     syn = synthetic_rfps()
     print(f"[synthetic] {len(syn)} rfps")
 
     # Combine — synthetics get appended after captured.
     rfps = captured["rfps"] + syn
-    screenings = captured["screenings"]
-    drafts = captured["drafts"]
+
+    # If the source DB had no draft_jobs / audit_log entries (e.g. they were
+    # truncated by an earlier seed_data run), synthesize a minimal but
+    # realistic set covering the captured RFPs, screenings, and drafts.
+    syn_jobs, syn_audit = synthetic_draft_jobs_and_audit(
+        rfps=rfps,
+        screenings=captured["screenings"],
+        drafts=captured["drafts"],
+    )
+    draft_jobs = captured["draft_jobs"] or syn_jobs
+    audit_entries = captured["audit_log"] or syn_audit
+    if captured["draft_jobs"]:
+        print(f"[capture] using {len(draft_jobs)} captured draft_jobs from DB")
+    else:
+        print(f"[synthetic] {len(draft_jobs)} draft_jobs (DB had none)")
+    if captured["audit_log"]:
+        print(f"[capture] using {len(audit_entries)} captured audit entries from DB")
+    else:
+        print(f"[synthetic] {len(audit_entries)} audit entries (DB had none)")
 
     out = {
-        "rfps.json": rfps,
-        "screenings.json": screenings,
-        "drafts.json": drafts,
+        "rfps.json":       rfps,
+        "screenings.json": captured["screenings"],
+        "drafts.json":     captured["drafts"],
+        "draft_jobs.json": draft_jobs,
+        "audit_log.json":  audit_entries,
     }
     for name, data in out.items():
         path = SEED_DIR / name
@@ -337,8 +531,10 @@ def main() -> None:
     print(f"  total RFPs:       {len(rfps)}")
     print(f"  by status:        {dict(by_status)}")
     print(f"  by source_type:   {dict(by_source)}")
-    print(f"  with screenings:  {len(screenings)}")
-    print(f"  with drafts:      {len(drafts)}")
+    print(f"  with screenings:  {len(captured['screenings'])}")
+    print(f"  with drafts:      {len(captured['drafts'])}")
+    print(f"  draft_jobs:       {len(captured['draft_jobs'])}")
+    print(f"  audit_entries:    {len(captured['audit_log'])}")
 
 
 if __name__ == "__main__":

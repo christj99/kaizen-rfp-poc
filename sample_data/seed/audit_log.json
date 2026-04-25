@@ -1,0 +1,322 @@
+[
+  {
+    "id": "95db7682-3274-44d0-afae-6d2c690887e1",
+    "entity_type": "rfp",
+    "entity_id": "e8697fa9-c44e-4dee-ac42-a018550beb46",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "sam_gov_primary",
+      "source_identifier": "75D301-26-Q-21088",
+      "was_new": true,
+      "title": "HHS CDC \u2014 Public Health Data Modernization Support Services",
+      "status": "new"
+    },
+    "created_at": "2026-04-23T20:39:52.556815+00:00"
+  },
+  {
+    "id": "5f994dc9-c8b7-48bf-b0fd-a17f17c29fc3",
+    "entity_type": "rfp",
+    "entity_id": "3dfc5c12-a831-4f0f-8c56-ea4f5bd3d272",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "sam_gov_primary",
+      "source_identifier": "12345678-NEEDS-REVIEW",
+      "was_new": true,
+      "title": "Treasury \u2014 Tax Data Platform Sources Sought (description fetch failed)",
+      "status": "needs_manual_review"
+    },
+    "created_at": "2026-04-24T20:39:52.556815+00:00"
+  },
+  {
+    "id": "a636a0f7-8af4-4e6a-b861-3fe2e322ee88",
+    "entity_type": "rfp",
+    "entity_id": "e6a7412a-5566-4718-8813-c396d0a6c165",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "demo_gmail",
+      "source_identifier": "8",
+      "was_new": true,
+      "title": "cherry hill ROAD AND ASSET MANAGER SOFTWARE",
+      "status": "screened"
+    },
+    "created_at": "2026-04-24T20:50:05.816347"
+  },
+  {
+    "id": "9615198b-a32e-4574-8295-eec50d25d544",
+    "entity_type": "rfp",
+    "entity_id": "e6a7412a-5566-4718-8813-c396d0a6c165",
+    "action": "screen_rfp",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 28000,
+      "output_tokens": 4200,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-24T20:51:37.817089"
+  },
+  {
+    "id": "28b30b49-2058-43d2-acc9-b3c1c3b2d4df",
+    "entity_type": "rfp",
+    "entity_id": "e9a7033b-b3f2-408e-b9b3-bf9341b506c3",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "demo_gmail",
+      "source_identifier": "10",
+      "was_new": true,
+      "title": "AI-driven Supply Chain Analytics Platform DOJ",
+      "status": "screened"
+    },
+    "created_at": "2026-04-24T21:20:05.059232"
+  },
+  {
+    "id": "c10870bb-f824-48e4-8581-2c0a6a3b2eb8",
+    "entity_type": "rfp",
+    "entity_id": "e9a7033b-b3f2-408e-b9b3-bf9341b506c3",
+    "action": "screen_rfp",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 28000,
+      "output_tokens": 4200,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-24T21:21:27.148105"
+  },
+  {
+    "id": "9f902f42-48c7-4fae-acfa-e1235ee424de",
+    "entity_type": "rfp",
+    "entity_id": "52db4d78-f2b9-44fc-acd9-9f67a9a72604",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "demo_gmail",
+      "source_identifier": "11",
+      "was_new": true,
+      "title": "Federal Data Platform Modernization NIH Clinical Research Data Platform",
+      "status": "screened"
+    },
+    "created_at": "2026-04-24T21:32:04.810864"
+  },
+  {
+    "id": "48f4bc66-44bd-43a0-9001-323d2ec213d9",
+    "entity_type": "rfp",
+    "entity_id": "52db4d78-f2b9-44fc-acd9-9f67a9a72604",
+    "action": "screen_rfp",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 28000,
+      "output_tokens": 4200,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-24T21:34:05.812732"
+  },
+  {
+    "id": "f1280784-119d-47be-94d3-297fab7c36ec",
+    "entity_type": "rfp",
+    "entity_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "demo_gmail",
+      "source_identifier": "20",
+      "was_new": true,
+      "title": "VHA Healthcare analytics",
+      "status": "in_draft"
+    },
+    "created_at": "2026-04-25T01:10:32.632736"
+  },
+  {
+    "id": "fa13b9a7-ea59-4e9d-957d-b294eb0443dd",
+    "entity_type": "rfp",
+    "entity_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+    "action": "screen_rfp",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 28000,
+      "output_tokens": 4200,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-25T01:13:53.471746"
+  },
+  {
+    "id": "5523b2f3-02e8-49ef-ac19-7fb28103cb06",
+    "entity_type": "draft_job",
+    "entity_id": "22629023-53fb-4a78-a3d3-4c9f4bb42610",
+    "action": "queued",
+    "actor": "system",
+    "details": {
+      "rfp_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+      "mode": "full_auto"
+    },
+    "created_at": "2026-04-25T01:14:28.823401"
+  },
+  {
+    "id": "a7a9ef7b-315b-45cf-8915-a8a9dd049ad2",
+    "entity_type": "draft_job",
+    "entity_id": "22629023-53fb-4a78-a3d3-4c9f4bb42610",
+    "action": "running",
+    "actor": "system",
+    "details": {
+      "rfp_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490"
+    },
+    "created_at": "2026-04-25T01:14:28.903401"
+  },
+  {
+    "id": "378327cf-253b-46c5-a6f0-343cd2d2130c",
+    "entity_type": "rfp",
+    "entity_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+    "action": "draft_proposal",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 42000,
+      "output_tokens": 11500,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-25T01:19:48.823401"
+  },
+  {
+    "id": "55850cc6-9da2-4714-b1bd-a06671610da6",
+    "entity_type": "draft_job",
+    "entity_id": "22629023-53fb-4a78-a3d3-4c9f4bb42610",
+    "action": "completed",
+    "actor": "system",
+    "details": {
+      "rfp_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+      "draft_id": "c6ad6218-b2af-48ba-8878-06538e16bc19",
+      "duration_seconds": 320.04
+    },
+    "created_at": "2026-04-25T01:19:48.943401"
+  },
+  {
+    "id": "5d7e1ef0-ba39-4346-ace7-6d2c486a9ace",
+    "entity_type": "rfp",
+    "entity_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "demo_gmail",
+      "source_identifier": "21",
+      "was_new": true,
+      "title": "USDA FNS SNAP Modernization",
+      "status": "in_draft"
+    },
+    "created_at": "2026-04-25T01:28:32.597836"
+  },
+  {
+    "id": "0bef56e2-4fdb-4ec4-a6c0-0c8acd6bbb9b",
+    "entity_type": "rfp",
+    "entity_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+    "action": "screen_rfp",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 28000,
+      "output_tokens": 4200,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-25T01:30:20.457858"
+  },
+  {
+    "id": "3917789b-30d9-4464-af2a-c99c228b9ae4",
+    "entity_type": "draft_job",
+    "entity_id": "003f6dde-82c8-4be5-8854-33478acf6f9c",
+    "action": "queued",
+    "actor": "system",
+    "details": {
+      "rfp_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+      "mode": "full_auto"
+    },
+    "created_at": "2026-04-25T01:32:07.446958"
+  },
+  {
+    "id": "4cc8bde3-0f52-47eb-8257-00fa37ebd0c1",
+    "entity_type": "draft_job",
+    "entity_id": "003f6dde-82c8-4be5-8854-33478acf6f9c",
+    "action": "running",
+    "actor": "system",
+    "details": {
+      "rfp_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23"
+    },
+    "created_at": "2026-04-25T01:32:07.526958"
+  },
+  {
+    "id": "ace2e41f-20a7-456f-84b0-6540b32eb530",
+    "entity_type": "rfp",
+    "entity_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+    "action": "draft_proposal",
+    "actor": "claude",
+    "details": {
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 42000,
+      "output_tokens": 11500,
+      "schema_enforced": true
+    },
+    "created_at": "2026-04-25T01:37:27.446958"
+  },
+  {
+    "id": "17cc05eb-12c5-475a-9500-36144cdbb612",
+    "entity_type": "draft_job",
+    "entity_id": "003f6dde-82c8-4be5-8854-33478acf6f9c",
+    "action": "completed",
+    "actor": "system",
+    "details": {
+      "rfp_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+      "draft_id": "690a2e18-5859-47db-a31e-bff762598258",
+      "duration_seconds": 320.04
+    },
+    "created_at": "2026-04-25T01:37:27.566958"
+  },
+  {
+    "id": "5149182f-4b1a-4f57-95bd-7c23c99f9719",
+    "entity_type": "rfp",
+    "entity_id": "3f9e9943-703c-4a45-9831-18652a7a2a0d",
+    "action": "discovery_ingest",
+    "actor": "system",
+    "details": {
+      "adapter_name": "url_ingest",
+      "source_identifier": "3f9e9943-703c-4a45-9831-18652a7a2a0d",
+      "was_new": true,
+      "title": "Minnesota DHS \u2014 Business Intelligence Modernization (RFI)",
+      "status": "new"
+    },
+    "created_at": "2026-04-25T08:39:52.556815+00:00"
+  },
+  {
+    "id": "c187e1ce-895b-4ec9-921d-bfbbc5bc7fef",
+    "entity_type": "rfp",
+    "entity_id": "4229b02a-456b-4631-9b6b-a0637730d40e",
+    "action": "rfp_ingested",
+    "actor": "system",
+    "details": {
+      "adapter_name": "manual_upload",
+      "source_identifier": "4229b02a-456b-4631-9b6b-a0637730d40e",
+      "was_new": true,
+      "title": "U.S. Department of Education \u2014 Title I Performance Reporting Platform",
+      "status": "new"
+    },
+    "created_at": "2026-04-25T12:39:52.556815+00:00"
+  },
+  {
+    "id": "42d98cd2-4bd8-4bbd-98b5-8a6421904d02",
+    "entity_type": "rfp",
+    "entity_id": "8d7333cf-fb00-4f7f-b7b6-a76eb95fc364",
+    "action": "rfp_ingested",
+    "actor": "system",
+    "details": {
+      "adapter_name": "manual_upload",
+      "source_identifier": "8d7333cf-fb00-4f7f-b7b6-a76eb95fc364",
+      "was_new": true,
+      "title": "Massachusetts Executive Office for Administration & Finance \u2014 Data Modernization Initiative",
+      "status": "new"
+    },
+    "created_at": "2026-04-25T16:39:52.556815+00:00"
+  }
+]

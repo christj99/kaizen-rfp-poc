@@ -33,6 +33,7 @@ from screens import rfp_detail as page_rfp_detail          # noqa: E402
 from screens import past_proposals as page_past_proposals  # noqa: E402
 from screens import rubric_editor as page_rubric_editor    # noqa: E402
 from screens import settings as page_settings              # noqa: E402
+from screens import sql_admin as page_sql_admin            # noqa: E402
 from screens import chat as page_chat                      # noqa: E402
 
 # Sidebar header sits above the auto-generated nav.
@@ -56,6 +57,7 @@ nav = st.navigation([
     st.Page(page_past_proposals.render,  title="Past Proposals", icon=":material/folder_open:", url_path="past_proposals"),
     st.Page(page_rubric_editor.render,   title="Rubric",         icon=":material/tune:",        url_path="rubric"),
     st.Page(page_settings.render,        title="Settings",       icon=":material/settings:",    url_path="settings"),
+    st.Page(page_sql_admin.render,       title="SQL Console",    icon=":material/database:",    url_path="sql"),
     st.Page(page_chat.render,            title="Chat",           icon=":material/chat:",        url_path="chat"),
 ])
 nav.run()

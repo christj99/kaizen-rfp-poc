@@ -158,7 +158,7 @@
     "dedupe_hash": "b1b5f434d16e3b975b34ab41c69811308c3a23e52d16faa5b056bb2b30470f5b"
   },
   {
-    "id": "4c9e5f04-de7d-456a-93d9-42a22e8dd908",
+    "id": "8d7333cf-fb00-4f7f-b7b6-a76eb95fc364",
     "source_adapter_version": "manual_upload_v1",
     "source_metadata": {
       "filename": "MA-Data-Modernization-RFP.pdf",
@@ -177,13 +177,13 @@
     "value_estimate_high": 4800000,
     "full_text": "The Commonwealth of Massachusetts seeks a prime contractor to modernize its enterprise data platform supporting cross-agency analytics. Scope includes (a) consolidating eight legacy departmental data warehouses into a unified Snowflake environment on AWS, (b) rebuilding ETL pipelines in dbt with documented data lineage, (c) implementing self-service analytics using Tableau for program staff across HHS, DOR, and EOLWD, (d) maintaining data classification + encryption consistent with M.G.L. c. 93H. Period of performance: 18 months with two 12-month options. NAICS 541511. Set-aside: none; full and open. Place of performance: Boston, MA, with remote flexibility. Response due date: see solicitation cover page.",
     "source_url": null,
-    "received_at": "2026-04-24T22:39:29.008570+00:00",
+    "received_at": "2026-04-25T16:39:52.556815+00:00",
     "status": "new",
     "dedupe_hash": "seed-mass-eoaf-data-mod",
     "source_type": "manual_upload"
   },
   {
-    "id": "4f0c3f7a-ff59-4a33-add1-b104b49b1198",
+    "id": "4229b02a-456b-4631-9b6b-a0637730d40e",
     "source_adapter_version": "manual_upload_v1",
     "source_metadata": {
       "filename": "DoEd-Title-I-Reporting.pdf",
@@ -201,13 +201,13 @@
     "value_estimate_high": 3200000,
     "full_text": "The Office of Elementary and Secondary Education (OESE) seeks a contractor to design and implement a unified Title I performance reporting platform consolidating district-level data submissions from all 50 states. Scope: data ingestion APIs, validation rules engine, longitudinal analytics dashboards, public-facing data release pipelines (FERPA-compliant aggregation). Cloud target: AWS GovCloud. NAICS 541511. Set-aside: full and open. 24 months with one 12-month option.",
     "source_url": null,
-    "received_at": "2026-04-24T18:39:29.008570+00:00",
+    "received_at": "2026-04-25T12:39:52.556815+00:00",
     "status": "new",
     "dedupe_hash": "seed-doed-title1-platform",
     "source_type": "manual_upload"
   },
   {
-    "id": "b5d30cc1-0808-4483-839d-aec419383b8d",
+    "id": "3f9e9943-703c-4a45-9831-18652a7a2a0d",
     "source_adapter_version": "url_ingest_v1",
     "source_metadata": {
       "url": "https://sam.gov/workspace/contract/opp/example-state-mn-bi/view",
@@ -225,13 +225,13 @@
     "value_estimate_high": null,
     "full_text": "Request for Information (RFI). The Minnesota Department of Human Services is conducting market research for a forthcoming solicitation to modernize its statewide BI environment supporting Medicaid analytics, behavioral health reporting, and child welfare outcomes tracking. This RFI seeks vendor input on technical approach, integration with MMIS, and FedRAMP-aligned cloud deployments. Responses will inform but not determine the subsequent RFP. NAICS 541511. No award will result from this RFI.",
     "source_url": "https://sam.gov/workspace/contract/opp/example-state-mn-bi/view",
-    "received_at": "2026-04-24T14:39:29.008570+00:00",
+    "received_at": "2026-04-25T08:39:52.556815+00:00",
     "status": "new",
     "dedupe_hash": "seed-mn-dhs-bi-rfi",
     "source_type": "url_ingest"
   },
   {
-    "id": "3fea1a4e-d86e-4dcc-85dd-de34aade520d",
+    "id": "e8697fa9-c44e-4dee-ac42-a018550beb46",
     "source_adapter_version": "sam_gov_v1",
     "source_metadata": {
       "notice_id": "75D301-26-Q-21088",
@@ -252,13 +252,13 @@
     "value_estimate_high": 2400000,
     "full_text": "CDC seeks a prime contractor to support the Data Modernization Initiative (DMI), specifically: (a) ingesting state-level syndromic surveillance feeds into the CDC unified data platform, (b) building dbt-based transformations for cross-condition analytics, (c) developing Tableau dashboards for state and local epidemiologists, (d) maintaining FedRAMP Moderate posture. Total small business set-aside. NAICS 541511. 24 months base + two 12-month options. Place of performance: Atlanta, GA / remote.",
     "source_url": "https://sam.gov/workspace/contract/opp/synthetic-cdc-dmi/view",
-    "received_at": "2026-04-23T02:39:29.008570+00:00",
+    "received_at": "2026-04-23T20:39:52.556815+00:00",
     "status": "new",
     "dedupe_hash": "seed-cdc-dmi-support",
     "source_type": "sam_gov"
   },
   {
-    "id": "a492bcb5-2b78-4b0c-83c4-a58b5bb3e4f6",
+    "id": "3dfc5c12-a831-4f0f-8c56-ea4f5bd3d272",
     "source_adapter_version": "sam_gov_v1",
     "source_metadata": {
       "notice_id": "12345678-NEEDS-REVIEW",
@@ -280,7 +280,7 @@
     "value_estimate_high": null,
     "full_text": null,
     "source_url": "https://sam.gov/workspace/contract/opp/synthetic-irs-tax-data/view",
-    "received_at": "2026-04-24T02:39:29.008570+00:00",
+    "received_at": "2026-04-24T20:39:52.556815+00:00",
     "status": "needs_manual_review",
     "dedupe_hash": "seed-irs-tax-data-needs-review",
     "source_type": "sam_gov"

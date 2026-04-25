@@ -830,6 +830,77 @@ def chat_endpoint(body: ChatRequest) -> ChatResponse:
     return run_chat_turn(body)
 
 
+# -- admin SQL console (Phase 7 polish) -------------------------------
+
+class SqlAdminRequest(BaseModel):
+    query: str
+
+
+class SqlAdminError(BaseModel):
+    error: str
+    detail: Optional[str] = None
+
+
+@app.post("/admin/sql", response_model=None)
+def admin_sql_endpoint(body: SqlAdminRequest):
+    """Read-only SQL surface for the demo SQL console.
+
+    Three layers of defense in depth (parser, role, transaction settings).
+    See ``services/api/db/admin_sql.py`` for the rationale + implementation.
+    Failures (parser rejection, permission denied, statement timeout, bad
+    SQL syntax) come back as 400 with a structured ``{error, detail}``
+    body, not 500.
+    """
+    from .db import admin_sql as _admin
+
+    ok, err = _admin.validate_select_query(body.query)
+    if not ok:
+        raise HTTPException(status_code=400, detail={"error": "rejected", "detail": err})
+
+    import psycopg2
+
+    try:
+        result = _admin.execute_select(body.query)
+    except psycopg2.errors.QueryCanceled as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "statement_timeout",
+                    "detail": f"query exceeded {_admin.STATEMENT_TIMEOUT_SECONDS}s; "
+                              "tighten the query or add a more selective filter"},
+        )
+    except psycopg2.Error as exc:
+        # InsufficientPrivilege, SyntaxError, UndefinedTable, etc. all land here.
+        raise HTTPException(
+            status_code=400,
+            detail={"error": type(exc).__name__,
+                    "detail": str(exc).strip()[:600]},
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.exception("Unexpected failure in /admin/sql")
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "internal", "detail": str(exc)[:300]},
+        )
+
+    # Best-effort audit. Read-only access still warrants a trail.
+    try:
+        write_audit(AuditEntry(
+            entity_type="admin_sql_query",
+            action="sql_select",
+            actor="admin",
+            details={
+                "query": body.query[:500],
+                "row_count": result["row_count"],
+                "truncated": result["truncated"],
+                "duration_ms": result["execution_time_ms"],
+            },
+        ))
+    except Exception:
+        log.exception("admin_sql audit write failed")
+
+    return result
+
+
 # -- deprecated --------------------------------------------------------
 
 @app.post(

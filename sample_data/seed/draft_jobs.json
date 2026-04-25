@@ -1,0 +1,22 @@
+[
+  {
+    "id": "003f6dde-82c8-4be5-8854-33478acf6f9c",
+    "rfp_id": "acd9ae82-b67b-44cf-afab-9db3e11dcd23",
+    "status": "completed",
+    "started_at": "2026-04-25T01:32:07.526958",
+    "completed_at": "2026-04-25T01:37:27.566958",
+    "draft_id": "690a2e18-5859-47db-a31e-bff762598258",
+    "error_message": null,
+    "created_at": "2026-04-25T01:32:07.446958"
+  },
+  {
+    "id": "22629023-53fb-4a78-a3d3-4c9f4bb42610",
+    "rfp_id": "dabdd8b0-c305-4c7c-8805-b98e7cda7490",
+    "status": "completed",
+    "started_at": "2026-04-25T01:14:28.903401",
+    "completed_at": "2026-04-25T01:19:48.943401",
+    "draft_id": "c6ad6218-b2af-48ba-8878-06538e16bc19",
+    "error_message": null,
+    "created_at": "2026-04-25T01:14:28.823401"
+  }
+]

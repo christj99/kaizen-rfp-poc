@@ -9,6 +9,61 @@ write-up for the SAM.gov API specifically lives in [sam_gov_issues.md](sam_gov_i
 
 ## Calibration datapoints (feed into rubric discussion)
 
+### 2026-04-24 — Phase 7: SQL Console as a demo affordance  ✅ LANDED
+
+Added a read-only SQL surface for the data-layer beat of the demo:
+`POST /admin/sql` + a Streamlit "SQL Console" page with six pre-canned
+example queries. Aimed at the "show me the data layer" moment without
+committing to a separate analytics screen or making the screening / draft
+JSONB shape opaque to the audience.
+
+**Three layers of defense (all verified):**
+1. **App-layer parser** (`services/api/db/admin_sql.py`) — regex rejects
+   any non-SELECT lead token, multi-statement queries, and an explicit
+   forbidden-keyword set (INSERT, UPDATE, DELETE, DROP, TRUNCATE, ALTER,
+   CREATE, GRANT, REVOKE, COPY, VACUUM, REINDEX, CLUSTER). WITH … SELECT
+   CTEs are allowed.
+2. **Postgres role** — `rfp_readonly` with SELECT-only grants on `public`,
+   provisioned by `schema.sql` and `scripts/migration_003_readonly_role.sql`
+   for already-running DBs. Verified at the DB level: `UPDATE` from this
+   role returns `permission denied for table rfps` even if the parser is
+   bypassed.
+3. **Per-query session settings** — `SET LOCAL TRANSACTION READ ONLY`
+   plus `SET LOCAL statement_timeout = 5000`. `pg_sleep(10)` is killed at
+   ~5.4s wall-clock with a structured `statement_timeout` 400 response.
+
+Result-row cap is 1000; `fetchmany(MAX_ROWS+1)` then truncate-with-flag.
+A `SELECT * FROM generate_series(1, 1500)` returns 1000 rows with
+`truncated:true`.
+
+**Six example queries** — each clickable in the UI, auto-loaded into the
+textarea and run. Picked to span the demo's narrative beats: lifecycle
+(rfps grouped by source/status), JSONB extraction (latest screening with
+`rationale->>'confidence_level'`), audit trail (`audit_log` for the most
+recent RFP), async durations (`draft_jobs` with `EXTRACT(EPOCH FROM …)`),
+RAG corpus (`past_proposals LEFT JOIN proposal_chunks` with chunk count),
+schema introspection (`information_schema.columns` on rfps).
+
+**Seed-data gap discovered along the way:** the original example for
+"past proposals retrieved" used `WHERE id = ANY((SELECT
+similar_proposal_ids FROM screenings ORDER BY … LIMIT 1))` and errored
+when the chosen screening's similar list was empty. Rewrote the example
+to be the past-proposal corpus view via LEFT JOIN — more useful as a
+demo beat anyway (4 proposals, 7-8 chunks each). Also discovered that
+`scripts/build_seed_fixtures.py` was capturing `draft_jobs` and
+`audit_log` from the live DB, but a fresh-truncate-then-build cycle
+left both empty. Added a `synthetic_draft_jobs_and_audit()` fallback so
+seeded fixtures always include 2 draft_jobs + 23 audit_log entries
+covering discovery_ingest, screen_rfp, and full
+queued/running/completed transitions. Result: from `seed_data.sh`
+onwards, every example query returns non-empty rows.
+
+**Why this matters for the demo:** the screening JSONB rationale and
+the audit trail are the most "this is a real engineered system" beats
+in the data — but they're invisible in the regular UI. The SQL Console
+is the cheapest possible way to surface them without inventing a
+read-screen. Click a button, see the schema + the data shape, move on.
+
 ### 2026-04-23 — DOC Cloud Services Provider Vehicle Strategy (email)
 
 Sent as an email with `SAM.govDOCRFP.pdf` attached. Ingested via the email

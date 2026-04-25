@@ -116,3 +116,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log (entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
+
+-- Phase 7: read-only role for the SQL admin endpoint. Connections from
+-- POST /admin/sql use this role so the database itself rejects writes
+-- even if the application-level parser is bypassed. Password defaults to
+-- 'kaizen_readonly_pw' for POC; production override via POSTGRES_READONLY_PASSWORD.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'rfp_readonly') THEN
+        EXECUTE 'CREATE ROLE rfp_readonly LOGIN PASSWORD ''kaizen_readonly_pw''';
+    END IF;
+END $$;
+
+GRANT CONNECT ON DATABASE kaizen_rfp TO rfp_readonly;
+GRANT USAGE ON SCHEMA public TO rfp_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO rfp_readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO rfp_readonly;
