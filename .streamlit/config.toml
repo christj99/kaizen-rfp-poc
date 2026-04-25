@@ -1,8 +1,11 @@
 [theme]
-primaryColor = "#2B6CB0"
+# Deep teal — distinct from Streamlit's default red, professional, reads as
+# "operations dashboard." Kaizen's brand-internal mission doc explicitly calls
+# out "design is everyone's job"; this is a small but visible signal.
+primaryColor = "#0F766E"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F4F6F8"
-textColor = "#1A202C"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#0F172A"
 font = "sans serif"
 
 [server]

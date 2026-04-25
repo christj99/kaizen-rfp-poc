@@ -55,11 +55,15 @@ from .db.client import (
     db_cursor,
     get_draft,
     get_draft_job,
+    get_past_proposal,
     get_rfp,
     insert_draft_job,
     latest_draft_for_rfp,
     latest_screening_for_rfp,
+    list_audit_entries,
+    list_past_proposals,
     list_rfps,
+    list_rfps_with_screening,
     ping,
     set_screening_override,
     update_draft_job,
@@ -68,6 +72,7 @@ from .db.client import (
 from .models.audit import AuditEntry
 from .models.draft import Draft
 from .models.draft_job import DraftJob, DraftJobStatus
+from .models.past_proposal import PastProposal
 from .models.rfp import RFP, RFPSourceType, RFPStatus
 from .models.screening import Recommendation, Screening
 from .rag.retriever import find_similar_proposals
@@ -329,13 +334,22 @@ def ingest_rfp_url(body: IngestURLRequest) -> IngestResult:
 
 # -- RFP read / screening ----------------------------------------------
 
-@app.get("/rfps", response_model=List[RFP])
+@app.get("/rfps")
 def list_rfps_endpoint(
     status: Optional[RFPStatus] = None,
+    source_type: Optional[RFPSourceType] = None,
+    with_screening: bool = False,
     limit: int = 100,
     offset: int = 0,
-) -> List[RFP]:
-    return list_rfps(status=status, limit=limit, offset=offset)
+):
+    """List RFPs (newest first). Pass ``with_screening=true`` to inline the
+    most-recent screening summary (fit_score, recommendation, effort) per
+    RFP — used by the Dashboard table to avoid N+1 calls."""
+    if with_screening:
+        return list_rfps_with_screening(
+            status=status, source_type=source_type, limit=limit, offset=offset
+        )
+    return list_rfps(status=status, source_type=source_type, limit=limit, offset=offset)
 
 
 @app.get("/rfp/{rfp_id}", response_model=RFPWithScreening)
@@ -634,6 +648,186 @@ def discovery_run_one(adapter_name: str) -> DiscoveryRunResponse:
 @app.get("/discovery/adapters", response_model=List[AdapterHealth])
 def discovery_adapters() -> List[AdapterHealth]:
     return [AdapterHealth(**h) for h in adapter_health_snapshot()]
+
+
+# -- audit log (Phase 5 dashboard activity feed) ----------------------
+
+@app.get("/audit_log", response_model=List[AuditEntry])
+def list_audit_log_endpoint(limit: int = 25) -> List[AuditEntry]:
+    return list_audit_entries(limit=limit)
+
+
+# -- past proposals (Phase 5 Past Proposals page) --------------------
+
+@app.get("/past_proposals", response_model=List[PastProposal])
+def list_past_proposals_endpoint(
+    search: Optional[str] = None,
+    limit: int = 100,
+) -> List[PastProposal]:
+    """List past proposals. ``search`` does a case-insensitive title/agency
+    match (semantic search over chunks already lives at
+    /rfp/{id}/similar-proposals)."""
+    proposals = list_past_proposals(limit=limit)
+    if search:
+        s = search.strip().lower()
+        proposals = [
+            p for p in proposals
+            if s in (p.title or "").lower() or s in (p.agency or "").lower()
+        ]
+    return proposals
+
+
+@app.get("/past_proposal/{proposal_id}", response_model=PastProposal)
+def get_past_proposal_endpoint(proposal_id: UUID) -> PastProposal:
+    p = get_past_proposal(proposal_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="Past proposal not found")
+    return p
+
+
+# -- config + rubric editing (Phase 5 Settings + Rubric pages) -------
+
+class ConfigUpdateRequest(BaseModel):
+    """Partial-update shape for the Settings page. Only fields that come
+    in non-None are written. Hot-reload-on-mtime picks up the change on
+    the next /orchestrate or /chat call."""
+    mode: Optional[Literal["manual", "chain", "full_auto"]] = None
+    screening_threshold_pursue: Optional[int] = None
+    screening_threshold_maybe: Optional[int] = None
+    drafting_auto_draft_threshold: Optional[int] = None
+    slack_notification_threshold: Optional[int] = None
+    sources_email_enabled: Optional[bool] = None
+    sources_sam_gov_enabled: Optional[bool] = None
+
+
+@app.get("/config")
+def get_config_endpoint():
+    """Return the current AppConfig as the Settings page sees it."""
+    return get_config().model_dump(mode="json")
+
+
+@app.put("/config")
+def update_config_endpoint(body: ConfigUpdateRequest):
+    """Patch config.yaml in place. Hot-reload picks up on next call."""
+    import yaml as _yaml
+    from .config.loader import DEFAULT_CONFIG_PATH, reload_config
+    raw = _yaml.safe_load(DEFAULT_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+
+    if body.mode is not None:
+        raw["mode"] = body.mode
+    raw.setdefault("screening", {})
+    if body.screening_threshold_pursue is not None:
+        raw["screening"]["threshold_pursue"] = body.screening_threshold_pursue
+    if body.screening_threshold_maybe is not None:
+        raw["screening"]["threshold_maybe"] = body.screening_threshold_maybe
+    raw.setdefault("drafting", {})
+    if body.drafting_auto_draft_threshold is not None:
+        raw["drafting"]["auto_draft_threshold"] = body.drafting_auto_draft_threshold
+    raw.setdefault("slack", {})
+    if body.slack_notification_threshold is not None:
+        raw["slack"]["notification_threshold"] = body.slack_notification_threshold
+    raw.setdefault("sources", {}).setdefault("email", {})
+    if body.sources_email_enabled is not None:
+        raw["sources"]["email"]["enabled"] = body.sources_email_enabled
+    raw["sources"].setdefault("sam_gov", {})
+    if body.sources_sam_gov_enabled is not None:
+        raw["sources"]["sam_gov"]["enabled"] = body.sources_sam_gov_enabled
+
+    DEFAULT_CONFIG_PATH.write_text(
+        _yaml.safe_dump(raw, sort_keys=False),
+        encoding="utf-8",
+    )
+    cfg = reload_config()
+
+    write_audit(AuditEntry(
+        action="config_updated", actor="user",
+        details=body.model_dump(exclude_none=True),
+    ))
+    return cfg.model_dump(mode="json")
+
+
+@app.get("/rubric")
+def get_rubric_endpoint():
+    """Return the parsed fit_rubric.yaml for the Rubric Editor."""
+    from .config.loader import DEFAULT_CONFIG_PATH
+    import yaml as _yaml
+    rubric_path = DEFAULT_CONFIG_PATH.parent / "fit_rubric.yaml"
+    return _yaml.safe_load(rubric_path.read_text(encoding="utf-8"))
+
+
+class RubricUpdateRequest(BaseModel):
+    """Saves the rubric as a full document. Caller (Rubric Editor) sends
+    the complete dict; we bump ``version`` if not provided and audit-log
+    it so version history is reconstructible."""
+    rubric: Dict[str, Any]
+
+
+@app.put("/rubric")
+def update_rubric_endpoint(body: RubricUpdateRequest):
+    from .config.loader import DEFAULT_CONFIG_PATH
+    import yaml as _yaml
+    from datetime import date as _date
+
+    rubric_path = DEFAULT_CONFIG_PATH.parent / "fit_rubric.yaml"
+    rubric = dict(body.rubric)
+
+    # Auto-bump version if caller didn't change it; also stamp last_updated.
+    current = _yaml.safe_load(rubric_path.read_text(encoding="utf-8")) or {}
+    if rubric.get("version") == current.get("version"):
+        # Bump trailing minor: '1.0' -> '1.1', '1.0.0' -> '1.0.1', etc.
+        parts = str(current.get("version", "1.0")).split(".")
+        parts[-1] = str(int(parts[-1]) + 1)
+        rubric["version"] = ".".join(parts)
+    rubric["last_updated"] = _date.today().isoformat()
+
+    rubric_path.write_text(
+        _yaml.safe_dump(rubric, sort_keys=False),
+        encoding="utf-8",
+    )
+    write_audit(AuditEntry(
+        action="rubric_updated", actor="user",
+        details={"version": rubric["version"], "last_updated": rubric["last_updated"]},
+    ))
+    return {"version": rubric["version"], "last_updated": rubric["last_updated"]}
+
+
+# -- chat (Phase 5 Step 5.3) ------------------------------------------
+
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: List[ChatTurn]
+
+
+class ChatToolCallSummary(BaseModel):
+    tool: str
+    input: Dict[str, Any]
+    output_summary: str
+
+
+class ChatResponse(BaseModel):
+    role: Literal["assistant"] = "assistant"
+    content: str
+    tool_calls: List[ChatToolCallSummary] = Field(default_factory=list)
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat_endpoint(body: ChatRequest) -> ChatResponse:
+    """Tool-calling chat backed by Claude.
+
+    Tools (matching chat_system.txt's contract):
+      - search_rfps(filters)
+      - search_past_proposals(query, k)
+      - get_rfp_detail(rfp_id)
+      - get_past_proposal_detail(proposal_id)
+      - get_screening_detail(screening_id)
+    """
+    from .agents.chat import run_chat_turn   # lazy import; chat module is heavy
+
+    return run_chat_turn(body)
 
 
 # -- deprecated --------------------------------------------------------

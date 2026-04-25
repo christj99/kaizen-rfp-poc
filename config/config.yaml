@@ -1,75 +1,55 @@
-# Top-level runtime config. Hot-reloadable — the Settings page writes this file
-# back and calls reload_config() without restarting the API.
-mode: full_auto                          # manual | chain | full_auto
-
+mode: manual
 screening:
   threshold_pursue: 75
   threshold_maybe: 50
-
 drafting:
-  # Minimum fit_score required to auto-queue a drafting job in full_auto mode.
-  # Plan guidance treats 80+ as "obvious pursue"; dropping the default from 90
-  # to 80 keeps full_auto from silently no-op'ing on realistic-looking RFPs.
   auto_draft_threshold: 80
-
-# Ingestion sources (supplemental plan, amendment 1.B).
-# Each top-level key is a source *family*. Within each family, `adapters:` is
-# a list of concrete adapter instances — letting us run two Gmail inboxes,
-# two SAM.gov keys, etc. without schema churn. The adapter whose family has
-# `primary: true` is what the UI badges as "Primary source".
 sources:
   email:
     enabled: true
     primary: true
     adapters:
-      - name: "demo_gmail"
-        type: "imap"
-        host: "imap.gmail.com"
-        port: 993
-        username_env: "DEMO_EMAIL_USERNAME"
-        password_env: "DEMO_EMAIL_PASSWORD"
-        folder: "INBOX"
-        poll_interval_minutes: 2
-        mark_as_read: true
-        parse_strategy:
-          pdf_attachments: true
-          text_body: true
-          digest_parser: false        # stretch goal (supplemental 2.C)
-        # When true, a light Claude pass fills in missing structured fields
-        # (NAICS, due date, value) from free-form email text. Never overwrites
-        # caller-provided values; always tags extracted fields with confidence.
-        use_llm_extraction: false
+    - name: demo_gmail
+      type: imap
+      host: imap.gmail.com
+      port: 993
+      username_env: DEMO_EMAIL_USERNAME
+      password_env: DEMO_EMAIL_PASSWORD
+      folder: INBOX
+      poll_interval_minutes: 2
+      mark_as_read: true
+      parse_strategy:
+        pdf_attachments: true
+        text_body: true
+        digest_parser: false
+      use_llm_extraction: false
   sam_gov:
     enabled: true
     primary: false
     adapters:
-      - name: "sam_gov_primary"
-        type: "sam_gov_api"
-        api_key_env: "SAM_GOV_API_KEY"
-        naics_filter: ["541511", "541512", "541519", "541690", "518210"]
-        poll_interval_hours: 4
-        fallback_strategy:
-          try_description_endpoint: true
-          on_description_failure: "flag_for_manual_review"
+    - name: sam_gov_primary
+      type: sam_gov_api
+      api_key_env: SAM_GOV_API_KEY
+      naics_filter:
+      - '541511'
+      - '541512'
+      - '541519'
+      - '541690'
+      - '518210'
+      poll_interval_hours: 4
+      fallback_strategy:
+        try_description_endpoint: true
+        on_description_failure: flag_for_manual_review
   manual_upload:
     enabled: true
     primary: false
   url_ingest:
     enabled: true
     primary: false
-
 slack:
   enabled: true
-  # Screenings with fit_score >= this threshold fire a Slack card. 50 surfaces
-  # pursue + maybe; the skip band (< 50) stays silent. See observations_log.md
-  # for the rationale — maybe-scored RFPs tend to be where the agent's
-  # reasoning is most demo-worthy (e.g. "this RFP is from 2021" catches).
   notification_threshold: 50
-
 llm:
-  model: "claude-sonnet-4-5"
-  # Screening output is a rich JSON payload (rubric breakdown + disqualifiers +
-  # dimensions + deal_breakers + open_questions + similar-proposal analysis);
-  # 4096 tokens truncates the response on realistic RFPs. 8192 gives headroom.
+  model: claude-sonnet-4-5
   max_tokens: 8192
   temperature: 0.3

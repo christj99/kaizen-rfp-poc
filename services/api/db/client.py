@@ -66,6 +66,30 @@ def ping() -> bool:
 
 # -- audit_log ---------------------------------------------------------
 
+def list_audit_entries(*, limit: int = 25) -> List[AuditEntry]:
+    """Recent audit_log entries for the Dashboard activity feed."""
+    with db_cursor() as cur:
+        cur.execute(
+            """SELECT id, entity_type, entity_id, action, actor, details, created_at
+                 FROM audit_log
+                ORDER BY created_at DESC
+                LIMIT %s""",
+            (limit,),
+        )
+        return [
+            AuditEntry(
+                id=r["id"],
+                entity_type=r["entity_type"],
+                entity_id=r["entity_id"],
+                action=r["action"],
+                actor=r["actor"],
+                details=r["details"] or {},
+                created_at=r["created_at"],
+            )
+            for r in cur.fetchall()
+        ]
+
+
 def write_audit(entry: AuditEntry) -> None:
     with db_cursor() as cur:
         cur.execute(
@@ -167,19 +191,76 @@ def get_rfp(rfp_id: UUID) -> Optional[RFP]:
 def list_rfps(
     *,
     status: Optional[str] = None,
+    source_type: Optional[str] = None,
     limit: int = 100,
     offset: int = 0,
 ) -> List[RFP]:
     sql = "SELECT * FROM rfps"
+    clauses: List[str] = []
     params: List[Any] = []
     if status:
-        sql += " WHERE status = %s"
+        clauses.append("status = %s")
         params.append(status)
+    if source_type:
+        clauses.append("source_type = %s")
+        params.append(source_type)
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
     sql += " ORDER BY received_at DESC LIMIT %s OFFSET %s"
     params.extend([limit, offset])
     with db_cursor() as cur:
         cur.execute(sql, params)
         return [_row_to_rfp(r) for r in cur.fetchall()]
+
+
+def list_rfps_with_screening(
+    *,
+    status: Optional[str] = None,
+    source_type: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> List[Dict[str, Any]]:
+    """List RFPs along with the most-recent screening summary inline.
+
+    Used by Dashboard / RFPs table — avoids N+1 calls to /rfp/{id}. Returns
+    plain dicts to keep the typing flexible (UI just needs fit_score +
+    recommendation alongside RFP fields).
+    """
+    where: List[str] = []
+    params: List[Any] = []
+    if status:
+        where.append("r.status = %s")
+        params.append(status)
+    if source_type:
+        where.append("r.source_type = %s")
+        params.append(source_type)
+
+    where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+    sql = f"""
+        SELECT r.*,
+               s.id            AS screening_id,
+               s.fit_score     AS fit_score,
+               s.recommendation AS recommendation,
+               s.effort_estimate AS effort_estimate,
+               s.created_at    AS screening_created_at,
+               s.human_override AS human_override
+          FROM rfps r
+     LEFT JOIN LATERAL (
+                  SELECT id, fit_score, recommendation, effort_estimate,
+                         created_at, human_override
+                    FROM screenings
+                   WHERE rfp_id = r.id
+                   ORDER BY created_at DESC
+                   LIMIT 1
+              ) s ON TRUE
+        {where_sql}
+        ORDER BY r.received_at DESC
+        LIMIT %s OFFSET %s
+    """
+    params.extend([limit, offset])
+    with db_cursor() as cur:
+        cur.execute(sql, params)
+        return [dict(r) for r in cur.fetchall()]
 
 
 def update_rfp_status(rfp_id: UUID, status: str) -> None:
