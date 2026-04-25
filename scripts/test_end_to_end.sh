@@ -59,7 +59,7 @@ fi
 if curl -sf "http://localhost:${N8N_PORT:-5678}/healthz" >/dev/null 2>&1; then
   _pass "n8n /healthz"
 else
-  _note "n8n /healthz unreachable (workflows are optional; see README)"
+  _fail "n8n /healthz" "container down — required for scheduled discovery + Slack"
 fi
 
 c_blue "[e2e] === Seed loader ==="

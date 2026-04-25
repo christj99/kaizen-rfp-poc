@@ -79,6 +79,10 @@ pip install -r requirements.txt
 ./scripts/demo_start.sh            # Linux / macOS / Git Bash
 # .\scripts\demo_start.ps1          # native PowerShell
 
+# Import + activate the n8n workflows (see the n8n setup section below
+# for the manual-UI alternative).
+python scripts/import_n8n_workflows.py --activate
+
 # Seed a populated demo state
 ./scripts/seed_data.sh
 ```
@@ -89,7 +93,7 @@ URLs once running:
 |---|---|---|
 | Streamlit UI | http://localhost:8501 | The demo surface |
 | FastAPI docs | http://localhost:8000/docs | Swagger UI for every endpoint |
-| n8n | http://localhost:5678 | Workflow orchestration (optional — see below) |
+| n8n | http://localhost:5678 | Scheduled discovery + Slack notifications |
 
 To tear down: `./scripts/demo_stop.sh` (or `demo_stop.ps1`).
 
@@ -171,37 +175,49 @@ Single Claude call (`drafting_system.txt` is the system prompt; the user prompt 
 
 Tool-calling chat backed by Claude. Five tools (`search_rfps`, `search_past_proposals`, `get_rfp_detail`, `get_past_proposal_detail`, `get_screening_detail`) ground every answer in real data from the system. Loop capped at 6 iterations.
 
-## Optional: n8n workflow setup
+## n8n workflow setup (required)
 
-n8n schedules the email-discovery polling (every 2 min), the SAM.gov polling (every 4 hr, off by default), and the draft-completion watcher (every 30 s). It also fires the Slack notifications.
+n8n drives the scheduled side of the pipeline: email-discovery polling (every 2 min), SAM.gov polling (every 4 hr, off by default), and the draft-completion watcher (every 30 s). It's also what fires the Slack notifications. **The demo flow assumes n8n is up with the workflows imported and active** — you can ingest, screen, and draft from the Streamlit UI alone, but the email-arrives → Slack-card path needs n8n.
 
-**The core stack runs without n8n** — you can ingest, screen, and draft from the Streamlit UI alone. n8n setup is required for: scheduled email polling, scheduled SAM.gov polling, automatic Slack cards on screening / draft completion / draft failure.
+Docker Compose already runs the n8n container (no separate install). What's left is importing the seven workflow JSONs and activating the three scheduled ones.
 
-### Importing the workflows
+### The seven workflows
 
-Six JSON workflow files live under `services/n8n/workflows/`:
+All under `services/n8n/workflows/`:
 
 | File | Trigger | Purpose |
 |---|---|---|
-| `discovery_email.json` | schedule (2 min) | Polls Gmail; triggers ingest → orchestrate → Slack card. **Activate this for the email demo.** |
-| `discovery_sam_gov.json` | schedule (4 hr) | Same pattern for SAM.gov. Leave inactive in dev (rate-limited). |
+| `discovery_email.json` | schedule (2 min) | Polls Gmail; triggers ingest → orchestrate → Slack card. **Active by default.** |
+| `discovery_sam_gov.json` | schedule (4 hr) | Same pattern for SAM.gov. Inactive by default (rate-limited). |
 | `chain_mode.json` | webhook | Force-chain a specific RFP regardless of `config.mode`. |
 | `full_auto_mode.json` | webhook | Force-full-auto a specific RFP. |
-| `draft_completion_watcher.json` | schedule (30 s) | Polls `draft_jobs`; fires "draft ready" or "draft failed" Slack cards. **Activate this for the drafting demo.** |
+| `draft_completion_watcher.json` | schedule (30 s) | Polls `draft_jobs`; fires "draft ready" or "draft failed" Slack cards. **Active by default.** |
 | `slack_notification.json` | webhook | Reusable sub-workflow for ad-hoc Slack cards. |
-| `slack_ingest_notification.json` | webhook | Sub-workflow called by both discovery workflows for the `📥 New RFP ingested` card. |
+| `slack_ingest_notification.json` | webhook | Sub-workflow called by both discovery workflows for the `📥 New RFP ingested` card. **Active by default** (its production webhook URL has to be reachable for the discovery workflows to call it). |
 
-**Option A — via the importer script (recommended).**
+### Importing the workflows — pick one path
+
+Both paths produce the same end state. The importer script saves five minutes of clicking; the manual UI path is always available and doesn't require generating an API key.
+
+**Path A — via the importer script (faster, recommended for repeat installs):**
 
 1. Open n8n at http://localhost:5678 (basic-auth from `.env`: `N8N_BASIC_AUTH_USER` / `N8N_BASIC_AUTH_PASSWORD`).
 2. Settings → n8n API → **Create an API key**. Paste into `.env` as `N8N_API_KEY=eyJ...`.
-3. Run `python scripts/import_n8n_workflows.py --activate`. Idempotent; safe to re-run after edits.
+3. Run `python scripts/import_n8n_workflows.py --activate`. Idempotent — re-run after editing any workflow JSON to push the changes.
 
-**Option B — manually via the UI.**
+**Path B — manually via the n8n UI (no API key required):**
 
-In n8n: Workflows → Create workflow → kebab menu → **Import from file**. Repeat for each JSON file under `services/n8n/workflows/`. Toggle "Active" on `discovery_email`, `draft_completion_watcher`, and `slack_ingest_notification`. The other three are webhook-triggered test harnesses; leave them inactive.
+1. Open n8n at http://localhost:5678.
+2. For each `.json` file under `services/n8n/workflows/`: Workflows → **Create workflow** → kebab menu → **Import from file** (or drag the JSON onto the canvas).
+3. Toggle "Active" on these three:
+   - `Discovery — Email (primary)`
+   - `Draft completion watcher`
+   - `Slack ingest notification (sub-workflow)`
+4. Leave the other four inactive — they're webhook-triggered test harnesses (`chain_mode`, `full_auto_mode`, `slack_notification`) and the secondary SAM.gov poller.
 
-**Slack webhook setup.** Create a Slack app at [api.slack.com/apps](https://api.slack.com/apps), enable **Incoming Webhooks**, install to your workspace, copy the webhook URL into `.env` as `SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...`. Restart the stack so n8n picks up the new env: `./scripts/demo_stop.sh && ./scripts/demo_start.sh`.
+### Slack webhook setup
+
+Create a Slack app at [api.slack.com/apps](https://api.slack.com/apps), enable **Incoming Webhooks**, install to your workspace, copy the webhook URL into `.env` as `SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...`. Restart the stack so n8n picks up the new env: `./scripts/demo_stop.sh && ./scripts/demo_start.sh`.
 
 ## Demo flow
 
