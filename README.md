@@ -4,6 +4,24 @@ A loosely-coupled multi-agent RFP automation system for a B2B proposals team. Bu
 
 The system ingests RFPs from email, SAM.gov, manual upload, or arbitrary URLs; screens each one against a calibrated rubric using Claude with retrieval-augmented context from past proposals; and (for clear pursues) drafts a first-pass proposal with explicit per-section provenance so the proposal lead knows exactly what was generated, what was retrieved, and what still needs human input.
 
+## How to read this repo
+
+This repository is meant to be reviewed as a full proof-of-concept, not as a production-ready enterprise system. The core POC is an internal RFP automation tool: ingest opportunities, normalize and dedupe them, screen them against a configurable fit rubric with retrieved past-performance context, and generate a reviewable first draft with provenance.
+
+The production-shaped core path is:
+
+1. `services/api/agents/discovery/` - ingestion adapters, normalization, dedupe, and mode-aware orchestration.
+2. `services/api/agents/screening.py` - Claude-backed RFP fit assessment using `config/fit_rubric.yaml` and `config/company_profile.yaml`.
+3. `services/api/rag/` - past-proposal indexing and retrieval over `sample_data/past_proposals/`.
+4. `services/api/agents/drafting.py` - first-draft generation using `config/proposal_template.yaml`, retrieved proposal context, and per-section provenance.
+5. `services/ui/screens/dashboard.py` and `services/ui/screens/rfp_detail.py` - the proposal-team review workflow.
+6. `services/n8n/workflows/` - scheduled discovery and Slack notification automation around the API.
+7. `services/api/db/schema.sql`, `services/api/models/`, and `audit_log` - durable entities and traceability for RFPs, screenings, drafts, jobs, and human overrides.
+
+The repo also includes supporting demo utilities: seed data, reset/start scripts, a SQL inspection console, a chat surface over the proposal database, and troubleshooting notes. These are included for transparency and repeatable demos, but the main evaluation path is the ingestion -> screening -> retrieval -> drafting -> review loop above.
+
+Local-only artifacts are intentionally excluded from source control: `.env`, `.venv/`, logs, runtime PID files, Docker volumes, and `__pycache__/`.
+
 ## Architecture
 
 ```
