@@ -35,6 +35,6 @@ else
 fi
 
 c_blue "[seed_data] loading fixtures..."
-"${PY}" "${SCRIPT_DIR}/load_seed_fixtures.py"
+"${PY}" -m scripts.load_seed_fixtures
 
 c_green "[seed_data] done."

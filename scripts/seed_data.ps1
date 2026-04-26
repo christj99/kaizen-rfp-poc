@@ -35,7 +35,7 @@ with db_cursor() as cur:
     }
 
     Write-Host "[seed_data] loading fixtures..." -ForegroundColor Cyan
-    & $py (Join-Path $PSScriptRoot 'load_seed_fixtures.py')
+    & $py -m scripts.load_seed_fixtures
     if ($LASTEXITCODE -ne 0) { throw "fixture load failed (exit $LASTEXITCODE)" }
 } finally {
     Pop-Location
