@@ -17,7 +17,49 @@ import api_client
 from components import api_health_banner, section_divider
 
 
-_QUERY_KEY = "sql_console_query"
+# Keep the textarea's widget key and the click-to-load key the SAME.
+# Streamlit ignores ``value=`` once a keyed widget has rendered — to
+# pre-populate the textarea from a button click, we have to write to the
+# textarea's own session_state key before its next render.
+_QUERY_KEY = "sql_console_textarea"
+
+# Public tables — used by the schema-explorer dropdown. Listed in the
+# order we tend to walk them in the demo (lifecycle entities first, then
+# the RAG corpus, then the audit trail).
+_PUBLIC_TABLES = [
+    "rfps",
+    "screenings",
+    "drafts",
+    "draft_jobs",
+    "past_proposals",
+    "proposal_chunks",
+    "audit_log",
+]
+
+
+def _schema_query(table: str) -> str:
+    return (
+        "SELECT\n"
+        "  column_name,\n"
+        "  data_type,\n"
+        "  is_nullable,\n"
+        "  column_default\n"
+        "FROM information_schema.columns\n"
+        f"WHERE table_name = '{table}' AND table_schema = 'public'\n"
+        "ORDER BY ordinal_position;"
+    )
+
+
+def _all_tables_overview_query() -> str:
+    return (
+        "SELECT\n"
+        "  table_name,\n"
+        "  COUNT(*) AS column_count\n"
+        "FROM information_schema.columns\n"
+        "WHERE table_schema = 'public'\n"
+        "GROUP BY table_name\n"
+        "ORDER BY table_name;"
+    )
 
 
 # Pre-canned demo queries. Each is a (label, sql) pair. Clicking a label
@@ -100,18 +142,6 @@ EXAMPLE_QUERIES: List[Dict[str, str]] = [
             "ORDER BY pp.submitted_date DESC NULLS LAST;"
         ),
     },
-    {
-        "label": "Schema of the rfps table",
-        "sql": (
-            "SELECT\n"
-            "  column_name,\n"
-            "  data_type,\n"
-            "  is_nullable\n"
-            "FROM information_schema.columns\n"
-            "WHERE table_name = 'rfps' AND table_schema = 'public'\n"
-            "ORDER BY ordinal_position;"
-        ),
-    },
 ]
 
 
@@ -156,15 +186,43 @@ def render() -> None:
             if st.button(eq["label"], key=f"ex_{i}", use_container_width=True):
                 st.session_state[_QUERY_KEY] = eq["sql"]
                 st.session_state["_run_now"] = True
+                st.rerun()
+
+    # --- schema explorer ---
+    section_divider("Schema explorer")
+    schema_cols = st.columns([2, 1, 1])
+    with schema_cols[0]:
+        selected_table = st.selectbox(
+            "Table",
+            options=_PUBLIC_TABLES,
+            index=0,
+            key="sql_console_schema_table",
+            label_visibility="collapsed",
+        )
+    with schema_cols[1]:
+        if st.button(":material/table_chart: Show columns",
+                     use_container_width=True, key="show_schema_btn"):
+            st.session_state[_QUERY_KEY] = _schema_query(selected_table)
+            st.session_state["_run_now"] = True
+            st.rerun()
+    with schema_cols[2]:
+        if st.button(":material/list: All tables",
+                     use_container_width=True, key="all_tables_btn"):
+            st.session_state[_QUERY_KEY] = _all_tables_overview_query()
+            st.session_state["_run_now"] = True
+            st.rerun()
 
     # --- query editor ---
     section_divider("Query")
-    current_sql = st.session_state.get(_QUERY_KEY, "")
+    # The textarea reads/writes session_state[_QUERY_KEY] directly because
+    # _QUERY_KEY IS the widget's own key — that's how button clicks above
+    # are able to repopulate it. Don't pass ``value=`` here; Streamlit
+    # would warn about setting both ``value`` and an existing session_state
+    # entry on the same widget.
     sql = st.text_area(
         "SQL",
-        value=current_sql,
         height=200,
-        key="sql_console_textarea",
+        key=_QUERY_KEY,
         label_visibility="collapsed",
         placeholder="SELECT ...",
     )
@@ -182,8 +240,8 @@ def render() -> None:
     if not should_run or not sql.strip():
         return
 
-    # Persist what we're about to run so the textarea retains it across rerun.
-    st.session_state[_QUERY_KEY] = sql
+    # No need to mirror sql back into session_state — the textarea owns
+    # _QUERY_KEY and Streamlit retains its own value across reruns.
 
     # --- execute ---
     section_divider("Result")
